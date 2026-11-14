@@ -1,137 +1,253 @@
 <UserControl x:Class="HighlandMilkBar.WPF.Views.DashboardView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:HighlandMilkBar.WPF.Controls">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel>
-            <Grid Margin="0,0,0,20">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <StackPanel>
-                    <TextBlock Text="{Binding Greeting}" FontSize="25" FontWeight="Bold" />
-                    <TextBlock Text="Here is what's happening at your outlet today." FontSize="12" Foreground="#77869A" Margin="0,5,0,0" />
-                </StackPanel>
-                <Border Grid.Column="1" Background="#EAF3FB" CornerRadius="9" Padding="13,9" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding TodayText}" FontSize="11.5" Foreground="#15558A" FontWeight="SemiBold" />
-                </Border>
-            </Grid>
+
+            <!-- Page header -->
+            <controls:PageHeader Title="Dashboard"
+                                 Subtitle="{Binding Greeting, StringFormat='{}{0} — here is what is happening at your outlet today.'}">
+                <controls:PageHeader.HeaderContent>
+                    <Border Background="{StaticResource PrimaryLightBrush}" CornerRadius="9" Padding="13,9">
+                        <TextBlock Text="{Binding TodayText}" FontSize="12"
+                                   FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" />
+                    </Border>
+                </controls:PageHeader.HeaderContent>
+            </controls:PageHeader>
 
             <!-- KPI cards -->
-            <UniformGrid Columns="4" Margin="0,0,0,20">
-                <Border Background="White" CornerRadius="14" Padding="18" Margin="0,0,12,0" BorderBrush="#E8EDF3" BorderThickness="1">
-                    <StackPanel>
-                        <Grid>
-                            <TextBlock Text="TODAY'S REVENUE" FontSize="10" FontWeight="Bold" Foreground="#77869A" />
-                            <Border Background="#EAF3FB" CornerRadius="9" Width="34" Height="34" HorizontalAlignment="Right">
-                                <TextBlock Text="LKR" FontSize="9" FontWeight="Bold" Foreground="#1769AA" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Border>
-                        </Grid>
-                        <TextBlock Text="{Binding RevenueTodayText}" FontSize="23" FontWeight="Bold" Margin="0,15,0,3" />
-                        <TextBlock Text="Completed sales today" FontSize="10.5" Foreground="#8A98A9" />
-                    </StackPanel>
-                </Border>
-                <Border Background="White" CornerRadius="14" Padding="18" Margin="0,0,12,0" BorderBrush="#E8EDF3" BorderThickness="1">
-                    <StackPanel>
-                        <Grid>
-                            <TextBlock Text="TRANSACTIONS" FontSize="10" FontWeight="Bold" Foreground="#77869A" />
-                            <Border Background="#E9F7F0" CornerRadius="9" Width="34" Height="34" HorizontalAlignment="Right">
-                                <TextBlock Text="↗" FontSize="18" FontWeight="Bold" Foreground="#16865B" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Border>
-                        </Grid>
-                        <TextBlock Text="{Binding TransactionsToday}" FontSize="27" FontWeight="Bold" Margin="0,15,0,3" />
-                        <TextBlock Text="Completed receipts today" FontSize="10.5" Foreground="#8A98A9" />
-                    </StackPanel>
-                </Border>
-                <Border Background="White" CornerRadius="14" Padding="18" Margin="0,0,12,0" BorderBrush="#E8EDF3" BorderThickness="1">
-                    <StackPanel>
-                        <Grid>
-                            <TextBlock Text="ACTIVE PRODUCTS" FontSize="10" FontWeight="Bold" Foreground="#77869A" />
-                            <Border Background="#F1EDFC" CornerRadius="9" Width="34" Height="34" HorizontalAlignment="Right">
-                                <TextBlock Text="▤" FontSize="17" Foreground="#7755B8" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Border>
-                        </Grid>
-                        <TextBlock Text="{Binding ActiveProducts}" FontSize="27" FontWeight="Bold" Margin="0,15,0,3" />
-                        <TextBlock Text="Products available in catalogue" FontSize="10.5" Foreground="#8A98A9" />
-                    </StackPanel>
-                </Border>
-                <Border Background="White" CornerRadius="14" Padding="18" BorderBrush="#E8EDF3" BorderThickness="1">
-                    <StackPanel>
-                        <Grid>
-                            <TextBlock Text="LOW STOCK ITEMS" FontSize="10" FontWeight="Bold" Foreground="#77869A" />
-                            <Border Background="#FFF4E5" CornerRadius="9" Width="34" Height="34" HorizontalAlignment="Right">
-                                <TextBlock Text="!" FontSize="19" FontWeight="Bold" Foreground="#B7791F" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Border>
-                        </Grid>
-                        <TextBlock Text="{Binding LowStockItems}" FontSize="27" FontWeight="Bold" Margin="0,15,0,3" />
-                        <TextBlock Text="At or below reorder level" FontSize="10.5" Foreground="#8A98A9" />
-                    </StackPanel>
-                </Border>
+            <UniformGrid Columns="4" Margin="0,20,0,0">
+                <controls:StatCard Title="TODAY'S REVENUE"
+                                   Value="{Binding RevenueTodayText}"
+                                   Caption="Completed sales today"
+                                   Glyph="LKR"
+                                   Accent="{StaticResource PrimaryBrush}"
+                                   Margin="0,0,12,0" />
+                <controls:StatCard Title="TODAY'S PROFIT"
+                                   Value="{Binding ProfitTodayText}"
+                                   Caption="Estimated gross profit"
+                                   Glyph="↗"
+                                   IsDemo="True"
+                                   Accent="{StaticResource SuccessBrush}"
+                                   Margin="0,0,12,0" />
+                <controls:StatCard Title="TRANSACTIONS"
+                                   Value="{Binding TransactionsToday}"
+                                   Caption="Completed receipts today"
+                                   Glyph="▤"
+                                   Accent="{StaticResource AccentBrush}"
+                                   Margin="0,0,12,0" />
+                <controls:StatCard Title="TODAY'S EXPENSES"
+                                   Value="{Binding ExpensesTodayText}"
+                                   Caption="Recorded operating costs"
+                                   Glyph="◈"
+                                   IsDemo="True"
+                                   Accent="{StaticResource WarningBrush}" />
             </UniformGrid>
 
-            <Grid Margin="0,0,0,18">
+            <!-- Analytics -->
+            <Grid Margin="0,18,0,0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.7*" />
+                    <ColumnDefinition Width="1.5*" />
                     <ColumnDefinition Width="1*" />
                 </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" Background="White" CornerRadius="14" Padding="20" Margin="0,0,12,0" BorderBrush="#E8EDF3" BorderThickness="1">
+
+                <Border Grid.Column="0" Style="{StaticResource AppCard}" Margin="0,0,12,0">
                     <StackPanel>
                         <Grid>
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                             <StackPanel>
-                                <TextBlock Text="Sales overview" FontSize="15" FontWeight="Bold" />
-                                <TextBlock Text="A visual summary will appear when sales are recorded." FontSize="10.5" Foreground="#8A98A9" Margin="0,4,0,0" />
+                                <TextBlock Text="Sales trend" Style="{StaticResource CardHeadingText}" />
+                                <TextBlock Text="Last 7 days" Style="{StaticResource SecondaryText}" Margin="0,3,0,0" />
                             </StackPanel>
-                            <TextBlock Grid.Column="1" Text="LIVE DATA" FontSize="9" FontWeight="Bold" Foreground="#16865B" HorizontalAlignment="Right" />
+                            <Border Style="{StaticResource StatusBadgeWarning}" HorizontalAlignment="Right">
+                                <TextBlock Text="DEMO" FontSize="9" FontWeight="Bold" Foreground="{StaticResource WarningBrush}" />
+                            </Border>
                         </Grid>
-                        <Border Background="#F7F9FC" CornerRadius="10" Padding="18" Margin="0,18,0,0" MinHeight="180">
-                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Border Width="46" Height="46" CornerRadius="23" Background="#EAF3FB" HorizontalAlignment="Center">
-                                    <TextBlock Text="⌁" FontSize="27" Foreground="#1769AA" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                </Border>
-                                <TextBlock Text="Your sales journey starts here" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,11,0,3" />
-                                <TextBlock Text="Once you start recording transactions, this area will show your sales trend." FontSize="10.5" Foreground="#8593A4" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="370" />
-                            </StackPanel>
+
+                        <Border Style="{StaticResource InsetPanel}" Margin="0,14,0,0" Height="190">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Rectangle Grid.Column="0" Width="26" VerticalAlignment="Bottom" Fill="{StaticResource PrimaryBrush}" Opacity="0.35" />
+                                <Rectangle Grid.Column="1" Width="26" VerticalAlignment="Bottom" Fill="{StaticResource PrimaryBrush}" Opacity="0.45" />
+                                <Rectangle Grid.Column="2" Width="26" VerticalAlignment="Bottom" Fill="{StaticResource PrimaryBrush}" Opacity="0.55" />
+                                <Rectangle Grid.Column="3" Width="26" VerticalAlignment="Bottom" Fill="{StaticResource PrimaryBrush}" Opacity="0.75" />
+                                <Rectangle Grid.Column="4" Width="26" VerticalAlignment="Bottom" Fill="{StaticResource PrimaryBrush}" Opacity="0.65" />
+                                <Rectangle Grid.Column="5" Width="26" VerticalAlignment="Bottom" Fill="{StaticResource PrimaryBrush}" Opacity="0.9" />
+                                <Rectangle Grid.Column="6" Width="26" VerticalAlignment="Bottom" Fill="{StaticResource PrimaryBrush}" />
+                            </Grid>
                         </Border>
+                        <TextBlock Text="A real sales trend will replace this preview once transactions are recorded."
+                                   Style="{StaticResource SecondaryText}" Margin="0,10,0,0" />
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="1" Background="White" CornerRadius="14" Padding="20" BorderBrush="#E8EDF3" BorderThickness="1">
+                <Border Grid.Column="1" Style="{StaticResource AppCard}">
                     <StackPanel>
-                        <TextBlock Text="Quick actions" FontSize="15" FontWeight="Bold" />
-                        <TextBlock Text="Jump into your daily tasks." FontSize="10.5" Foreground="#8A98A9" Margin="0,4,0,14" />
-                        <Button Style="{StaticResource PrimaryButton}" HorizontalContentAlignment="Left" Command="{Binding NavigateToPosCommand}" Margin="0,0,0,9">
-                            <StackPanel Orientation="Horizontal"><TextBlock Text="＋" FontSize="17" Margin="0,0,10,0" /><TextBlock Text="Start a sale" VerticalAlignment="Center" /></StackPanel>
-                        </Button>
-                        <Button Style="{StaticResource SecondaryButton}" HorizontalContentAlignment="Left" Command="{Binding NavigateToProductsCommand}" Margin="0,0,0,9">
-                            <StackPanel Orientation="Horizontal"><TextBlock Text="▤" FontSize="16" Margin="0,0,10,0" /><TextBlock Text="Manage products" VerticalAlignment="Center" /></StackPanel>
-                        </Button>
-                        <Button Style="{StaticResource SecondaryButton}" HorizontalContentAlignment="Left" Command="{Binding NavigateToInventoryCommand}" Margin="0,0,0,9">
-                            <StackPanel Orientation="Horizontal"><TextBlock Text="▥" FontSize="16" Margin="0,0,10,0" /><TextBlock Text="Check inventory" VerticalAlignment="Center" /></StackPanel>
-                        </Button>
-                        <Button Style="{StaticResource SecondaryButton}" HorizontalContentAlignment="Left" Command="{Binding NavigateToReportsCommand}">
-                            <StackPanel Orientation="Horizontal"><TextBlock Text="▧" FontSize="16" Margin="0,0,10,0" /><TextBlock Text="View reports" VerticalAlignment="Center" /></StackPanel>
-                        </Button>
+                        <TextBlock Text="Sales by category" Style="{StaticResource CardHeadingText}" />
+                        <TextBlock Text="Demo distribution" Style="{StaticResource SecondaryText}" Margin="0,3,0,12" />
+                        <ItemsControl ItemsSource="{Binding CategorySales}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="110" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="80" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Category}" FontSize="12" VerticalAlignment="Center" />
+                                        <ProgressBar Grid.Column="1" Height="8" Minimum="0" Maximum="100"
+                                                     Value="{Binding Percent}" Margin="0,0,10,0"
+                                                     Foreground="{StaticResource PrimaryBrush}"
+                                                     Background="{StaticResource PrimaryLightBrush}"
+                                                     BorderThickness="0" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Amount}" FontSize="11"
+                                                   Foreground="{StaticResource TextSecondaryBrush}" TextAlignment="Right" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
                 </Border>
             </Grid>
 
-            <Border Background="White" CornerRadius="14" Padding="20" BorderBrush="#E8EDF3" BorderThickness="1">
-                <Grid>
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <!-- Top products + inventory alerts -->
+            <Grid Margin="0,18,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource AppCard}" Margin="0,0,12,0">
                     <StackPanel>
-                        <TextBlock Text="Getting started" FontSize="15" FontWeight="Bold" />
-                        <TextBlock Text="Complete these setup tasks before using the outlet for live transactions." FontSize="10.5" Foreground="#8A98A9" Margin="0,4,0,14" />
-                        <WrapPanel>
-                            <Border Background="#F4F7FB" CornerRadius="8" Padding="11,8" Margin="0,0,8,0"><TextBlock Text="1  Add your products" FontSize="10.5" /></Border>
-                            <Border Background="#F4F7FB" CornerRadius="8" Padding="11,8" Margin="0,0,8,0"><TextBlock Text="2  Enter actual prices" FontSize="10.5" /></Border>
-                            <Border Background="#F4F7FB" CornerRadius="8" Padding="11,8" Margin="0,0,8,0"><TextBlock Text="3  Record opening stock" FontSize="10.5" /></Border>
-                            <Border Background="#F4F7FB" CornerRadius="8" Padding="11,8"><TextBlock Text="4  Configure receipts" FontSize="10.5" /></Border>
-                        </WrapPanel>
+                        <TextBlock Text="Top-selling products" Style="{StaticResource CardHeadingText}" />
+                        <TextBlock Text="Demo data" Style="{StaticResource SecondaryText}" Margin="0,3,0,12" />
+                        <ItemsControl ItemsSource="{Binding TopProducts}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="70" />
+                                            <ColumnDefinition Width="100" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Name}" FontSize="12" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Units, StringFormat='{}{0} units'}"
+                                                   FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextAlignment="Right" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Amount}" FontSize="12"
+                                                   FontWeight="SemiBold" TextAlignment="Right" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
-                    <TextBlock Grid.Column="1" Text="{Binding LastUpdatedText}" FontSize="10" Foreground="#9AA6B2" VerticalAlignment="Top" />
-                </Grid>
+                </Border>
+
+                <Border Grid.Column="1" Style="{StaticResource AppCard}">
+                    <StackPanel>
+                        <TextBlock Text="Inventory alerts" Style="{StaticResource CardHeadingText}" />
+                        <TextBlock Text="Demo data" Style="{StaticResource SecondaryText}" Margin="0,3,0,12" />
+
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <Border Style="{StaticResource StatusBadgeWarning}">
+                                <TextBlock Text="LOW STOCK" FontSize="9" FontWeight="Bold" Foreground="#9A6518" />
+                            </Border>
+                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding LowStockAlerts}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Product}" FontSize="12" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Detail}" FontSize="11"
+                                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,6">
+                            <Border Style="{StaticResource StatusBadgeWarning}">
+                                <TextBlock Text="NEAR EXPIRY" FontSize="9" FontWeight="Bold" Foreground="#9A6518" />
+                            </Border>
+                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding NearExpiryAlerts}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Product}" FontSize="12" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Detail}" FontSize="11"
+                                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,6">
+                            <Border Style="{StaticResource StatusBadgeDanger}">
+                                <TextBlock Text="EXPIRED" FontSize="9" FontWeight="Bold" Foreground="#B23A3A" />
+                            </Border>
+                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding ExpiredAlerts}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Product}" FontSize="12" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Detail}" FontSize="11"
+                                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Recent transactions -->
+            <Border Style="{StaticResource AppCard}" Margin="0,18,0,0">
+                <StackPanel>
+                    <Grid Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="Recent transactions" Style="{StaticResource CardHeadingText}" />
+                            <TextBlock Text="Most recent receipts" Style="{StaticResource SecondaryText}" Margin="0,3,0,0" />
+                        </StackPanel>
+                        <Border Style="{StaticResource StatusBadgeWarning}" HorizontalAlignment="Right">
+                            <TextBlock Text="DEMO DATA" FontSize="9" FontWeight="Bold" Foreground="{StaticResource WarningBrush}" />
+                        </Border>
+                    </Grid>
+                    <DataGrid Style="{StaticResource AppDataGrid}" ItemsSource="{Binding RecentSales}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="INVOICE" Binding="{Binding Invoice}" Width="120" />
+                            <DataGridTextColumn Header="DATE" Binding="{Binding Date}" Width="170" />
+                            <DataGridTextColumn Header="ITEMS" Binding="{Binding Items}" Width="80" />
+                            <DataGridTextColumn Header="PAYMENT" Binding="{Binding Payment}" Width="110" />
+                            <DataGridTextColumn Header="TOTAL" Binding="{Binding Total}" Width="140" />
+                            <DataGridTextColumn Header="STATUS" Binding="{Binding Status}" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
             </Border>
+
+            <TextBlock Text="{Binding DemoNote}" Style="{StaticResource SecondaryText}"
+                       Margin="0,14,0,4" TextWrapping="Wrap" />
         </StackPanel>
     </ScrollViewer>
 </UserControl>
