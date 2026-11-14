@@ -1,0 +1,47 @@
+<UserControl x:Class="HighlandMilkBar.WPF.Controls.StatCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root">
+    <Border Style="{StaticResource AppCard}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid>
+                <TextBlock Text="{Binding Title, ElementName=Root}"
+                           Style="{StaticResource LabelText}"
+                           VerticalAlignment="Center" />
+                <Border Width="38" Height="38" CornerRadius="11"
+                        Background="{StaticResource PrimaryLightBrush}"
+                        HorizontalAlignment="Right">
+                    <TextBlock Text="{Binding Glyph, ElementName=Root}"
+                               FontSize="17"
+                               Foreground="{Binding Accent, ElementName=Root}"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Border>
+            </Grid>
+
+            <TextBlock Grid.Row="1"
+                       Text="{Binding Value, ElementName=Root}"
+                       Style="{StaticResource KpiValueText}"
+                       Margin="0,14,0,2" />
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal">
+                <Border Style="{StaticResource StatusBadgeWarning}"
+                        Margin="0,0,8,0"
+                        Visibility="{Binding IsDemo, ElementName=Root, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="DEMO" FontSize="9" FontWeight="Bold"
+                               Foreground="{StaticResource WarningBrush}" />
+                </Border>
+                <TextBlock Text="{Binding Caption, ElementName=Root}"
+                           Style="{StaticResource SecondaryText}"
+                           VerticalAlignment="Center"
+                           TextWrapping="Wrap" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>
