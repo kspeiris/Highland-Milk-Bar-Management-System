@@ -21,7 +21,7 @@ SQLite database created by EF Core migrations. Money is `decimal(18,2)`, quantit
 | Id | INTEGER PK | |
 | Sku | TEXT NN UK | |
 | Name | TEXT NN | |
-| Barcode | TEXT | indexed, unique when supplied (app-enforced) |
+| Barcode | TEXT | indexed (uniqueness enforced when barcode entry is added) |
 | CategoryId | INTEGER FK → Categories | |
 | Type | INTEGER | ProductType |
 | Unit | TEXT | display unit |
