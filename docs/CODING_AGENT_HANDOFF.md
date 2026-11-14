@@ -16,18 +16,21 @@ You are continuing the `HighlandMilkBar` WPF solution. Read `README.md`, `PRODUC
 
 - Solution and project references are present.
 - `AppDbContext` contains the starting data model.
-- `DbInitializer` currently uses `EnsureCreated` and seeds categories plus sample catalogue labels with zero prices/stock.
+- `DbInitializer` applies EF Core migrations and seeds reference data (units, categories, starter products, expense categories, default settings). It never drops or recreates user data.
+- Database model is complete for Step 02 (27 tables). Entity mapping lives in `Infrastructure/Data/Configurations`. Migrations live in `Infrastructure/Data/Migrations`.
+- FIFO/FEFO allocation, purchase receiving, recipe costing/consumption, atomic checkout, returns and SQLite backup/restore are implemented in `Infrastructure/Services` behind interfaces in `Application/Services`.
+- Automated integration tests exist in `tests/HighlandMilkBar.Tests` (real temporary SQLite, migrations applied).
 - Dashboard is connected to SQLite for revenue, completed transaction count, active products and low-stock counts.
 - Product catalogue supports list/search/add.
 - Navigation placeholders exist for POS, Inventory, Milk Bar, Purchases, Suppliers, Customers, Expenses, Finance, Reports and Settings.
 
 ## First tasks for the next coding session
 
-1. Build and run the solution on Windows with the .NET 10 SDK. Fix any compile or runtime issues before adding modules.
-2. Add automated tests for product creation validation and dashboard metric calculations. Introduce a test project using SQLite in-memory or a temporary database.
-3. Replace `EnsureCreated` with EF Core migrations. Create the initial migration and implement a safe database upgrade path that never overwrites user data.
+1. Build and run the solution on Windows with the .NET 10 SDK (done — builds clean).
+2. Automated tests for the database foundation (done — `tests/HighlandMilkBar.Tests`, 14 passing).
+3. EF Core migrations + safe upgrade path (done — `InitialCreate`; `DbInitializer` uses `MigrateAsync`).
 4. Finish catalogue CRUD: edit, deactivate/reactivate, category management, barcode uniqueness, validation and stock opening balance through a stock movement rather than directly editing current stock.
-5. Add an application-level transaction service for POS checkout before implementing the POS UI.
+5. POS checkout UI on top of `ISalesService.CheckoutAsync` (the atomic transaction service already exists); then inventory, purchase, recipe and finance modules.
 
 ## POS transaction invariant
 
