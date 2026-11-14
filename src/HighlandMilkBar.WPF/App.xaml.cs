@@ -13,11 +13,12 @@ public partial class App : System.Windows.Application
     {
         base.OnStartup(e);
 
+        var appData = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "HighlandMilkBar");
+
         try
         {
-            var appData = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "HighlandMilkBar");
             Directory.CreateDirectory(appData);
             var databasePath = Path.Combine(appData, "highland-milkbar.db");
 
@@ -28,8 +29,9 @@ public partial class App : System.Windows.Application
             await DbInitializer.InitializeAsync(db);
 
             var productService = new ProductService(db);
+            var categoryService = new CategoryService(db);
             var dashboardService = new DashboardService(db);
-            var mainViewModel = new MainViewModel(dashboardService, productService);
+            var mainViewModel = new MainViewModel(dashboardService, productService, categoryService);
             await mainViewModel.InitializeAsync();
 
             var mainWindow = new MainWindow { DataContext = mainViewModel };
@@ -38,6 +40,15 @@ public partial class App : System.Windows.Application
         }
         catch (Exception ex)
         {
+            try
+            {
+                Directory.CreateDirectory(appData);
+                File.AppendAllText(
+                    Path.Combine(appData, "startup.log"),
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Startup failed: {ex}{Environment.NewLine}{Environment.NewLine}");
+            }
+            catch { }
+
             MessageBox.Show(
                 $"The application could not start.\n\nDetails: {ex.Message}",
                 "Highland Milk Bar - Startup Error",
