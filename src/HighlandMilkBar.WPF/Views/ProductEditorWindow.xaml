@@ -1,76 +1,104 @@
 <Window x:Class="HighlandMilkBar.WPF.Views.ProductEditorWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Add product" Width="560" Height="690" MinWidth="520" MinHeight="650"
-        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" Background="#F4F7FB">
+        Title="Add product" Width="600" Height="780" MinWidth="540" MinHeight="700"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" Background="{StaticResource BackgroundBrush}">
     <Grid Margin="22">
-        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Margin="0,0,0,16">
-            <TextBlock Text="Add a product" FontSize="22" FontWeight="Bold" />
-            <TextBlock Text="Enter the product details. You can update these values later." FontSize="11" Foreground="#78889A" Margin="0,4,0,0" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,14">
+            <TextBlock x:Name="HeaderTitle" Text="Add a product" FontSize="22" FontWeight="Bold" />
+            <TextBlock x:Name="HeaderSubtitle" Text="Enter the product details. You can update these values later."
+                       FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0" />
         </StackPanel>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel>
-                <TextBlock Text="PRODUCT NAME *" FontSize="9.5" FontWeight="Bold" Foreground="#66788C" Margin="0,0,0,5" />
-                <TextBox x:Name="NameInput" Style="{StaticResource InputTextBox}" Margin="0,0,0,13" />
-
-                <Grid Margin="0,0,0,13">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="14" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                <!-- General information -->
+                <TextBlock Text="GENERAL INFORMATION" Style="{StaticResource LabelText}" Margin="0,0,0,8" />
+                <Border Style="{StaticResource FlatCard}" Padding="16" Margin="0,0,0,14">
                     <StackPanel>
-                        <TextBlock Text="SKU / PRODUCT CODE *" FontSize="9.5" FontWeight="Bold" Foreground="#66788C" Margin="0,0,0,5" />
-                        <TextBox x:Name="SkuInput" Style="{StaticResource InputTextBox}" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="2">
-                        <TextBlock Text="CATEGORY *" FontSize="9.5" FontWeight="Bold" Foreground="#66788C" Margin="0,0,0,5" />
-                        <ComboBox x:Name="CategoryInput" Height="39" Padding="8,5" DisplayMemberPath="Name" SelectedValuePath="Id" />
-                    </StackPanel>
-                </Grid>
+                        <TextBlock Text="PRODUCT NAME *" Style="{StaticResource LabelText}" Margin="0,0,0,5" />
+                        <TextBox x:Name="NameInput" Style="{StaticResource InputTextBox}" Margin="0,0,0,12" />
 
-                <Grid Margin="0,0,0,13">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="14" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="SKU / PRODUCT CODE *" Style="{StaticResource LabelText}" Margin="0,0,0,5" />
+                                <TextBox x:Name="SkuInput" Style="{StaticResource InputTextBox}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="BARCODE" Style="{StaticResource LabelText}" Margin="0,0,0,5" />
+                                <TextBox x:Name="BarcodeInput" Style="{StaticResource InputTextBox}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="CATEGORY *" Style="{StaticResource LabelText}" Margin="0,0,0,5" />
+                                <ComboBox x:Name="CategoryInput" Style="{StaticResource AppComboBox}"
+                                          DisplayMemberPath="Name" SelectedValuePath="Id" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="PRODUCT TYPE *" Style="{StaticResource LabelText}" Margin="0,0,0,5" />
+                                <ComboBox x:Name="TypeInput" Style="{StaticResource AppComboBox}" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Pricing information -->
+                <TextBlock Text="PRICING INFORMATION (LKR)" Style="{StaticResource LabelText}" Margin="0,0,0,8" />
+                <Border Style="{StaticResource FlatCard}" Padding="16" Margin="0,0,0,14">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="PURCHASE PRICE *" Style="{StaticResource LabelText}" Margin="0,0,0,5" />
+                            <TextBox x:Name="CostInput" Style="{StaticResource InputTextBox}" Text="0" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="SELLING PRICE *" Style="{StaticResource LabelText}" Margin="0,0,0,5" />
+                            <TextBox x:Name="PriceInput" Style="{StaticResource InputTextBox}" Text="0" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Inventory settings -->
+                <TextBlock Text="INVENTORY SETTINGS" Style="{StaticResource LabelText}" Margin="0,0,0,8" />
+                <Border Style="{StaticResource FlatCard}" Padding="16" Margin="0,0,0,14">
                     <StackPanel>
-                        <TextBlock Text="PRODUCT TYPE" FontSize="9.5" FontWeight="Bold" Foreground="#66788C" Margin="0,0,0,5" />
-                        <ComboBox x:Name="TypeInput" Height="39" Padding="8,5" />
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="UNIT" Style="{StaticResource LabelText}" Margin="0,0,0,5" />
+                                <ComboBox x:Name="UnitInput" Style="{StaticResource AppComboBox}"
+                                          DisplayMemberPath="Name" SelectedValuePath="Id" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="REORDER LEVEL" Style="{StaticResource LabelText}" Margin="0,0,0,5" />
+                                <TextBox x:Name="ReorderInput" Style="{StaticResource InputTextBox}" Text="0" />
+                            </StackPanel>
+                        </Grid>
+                        <CheckBox x:Name="TrackInventoryInput" Content="Track this product in inventory"
+                                  IsChecked="True" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,2,0,10" />
+                        <CheckBox x:Name="IsActiveInput" Content="Active (available for sale)"
+                                  IsChecked="True" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" />
                     </StackPanel>
-                    <StackPanel Grid.Column="2">
-                        <TextBlock Text="UNIT" FontSize="9.5" FontWeight="Bold" Foreground="#66788C" Margin="0,0,0,5" />
-                        <TextBox x:Name="UnitInput" Text="Unit" Style="{StaticResource InputTextBox}" />
-                    </StackPanel>
-                </Grid>
+                </Border>
 
-                <Grid Margin="0,0,0,13">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="14" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                    <StackPanel>
-                        <TextBlock Text="COST PRICE (LKR)" FontSize="9.5" FontWeight="Bold" Foreground="#66788C" Margin="0,0,0,5" />
-                        <TextBox x:Name="CostInput" Text="0" Style="{StaticResource InputTextBox}" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="2">
-                        <TextBlock Text="SELLING PRICE (LKR)" FontSize="9.5" FontWeight="Bold" Foreground="#66788C" Margin="0,0,0,5" />
-                        <TextBox x:Name="PriceInput" Text="0" Style="{StaticResource InputTextBox}" />
-                    </StackPanel>
-                </Grid>
-
-                <Grid Margin="0,0,0,13">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="14" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                    <StackPanel>
-                        <TextBlock Text="OPENING STOCK" FontSize="9.5" FontWeight="Bold" Foreground="#66788C" Margin="0,0,0,5" />
-                        <TextBox x:Name="StockInput" Text="0" Style="{StaticResource InputTextBox}" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="2">
-                        <TextBlock Text="REORDER LEVEL" FontSize="9.5" FontWeight="Bold" Foreground="#66788C" Margin="0,0,0,5" />
-                        <TextBox x:Name="ReorderInput" Text="0" Style="{StaticResource InputTextBox}" />
-                    </StackPanel>
-                </Grid>
-
-                <CheckBox x:Name="TrackInventoryInput" Content="Track this product in inventory" IsChecked="True" FontSize="11.5" Foreground="#43546A" Margin="0,2,0,9" />
-                <TextBlock Text="Note: prices and quantities in the starter database are not official Highland prices. Enter the values used by your outlet." FontSize="10" Foreground="#8A6A30" TextWrapping="Wrap" Background="#FFF7E8" Padding="10" />
+                <TextBlock x:Name="ErrorText" Foreground="{StaticResource DangerBrush}" FontSize="12"
+                           TextWrapping="Wrap" Visibility="Collapsed" />
             </StackPanel>
         </ScrollViewer>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
             <Button Content="Cancel" Style="{StaticResource SecondaryButton}" MinWidth="90" Margin="0,0,9,0" IsCancel="True" />
-            <Button Content="Save product" Style="{StaticResource PrimaryButton}" MinWidth="120" Click="Save_Click" />
+            <Button x:Name="SaveButton" Content="Save product" Style="{StaticResource PrimaryButton}" MinWidth="140" Click="Save_Click" />
         </StackPanel>
     </Grid>
 </Window>
