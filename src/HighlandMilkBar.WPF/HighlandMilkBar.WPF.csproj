@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>HighlandMilkBar.WPF</RootNamespace>
+    <AssemblyName>HighlandMilkBar</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HighlandMilkBar.Application\HighlandMilkBar.Application.csproj" />
+    <ProjectReference Include="..\HighlandMilkBar.Infrastructure\HighlandMilkBar.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>
