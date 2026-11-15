@@ -237,6 +237,45 @@ public sealed class FinancialQueryServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task SupplierLiabilities_NoDueDate_IsCurrent()
+    {
+        var a = await AddSupplierAsync("Alpha");
+        await AddPurchaseReceivedAsync(a.Id, 1000m, 400m, null);
+
+        var liabilities = await Service.GetSupplierLiabilitiesAsync();
+
+        var line = liabilities.Lines.Single();
+        Assert.Null(line.EarliestDueDate);
+        Assert.Equal("Current", line.AgeingBucket);
+        Assert.Equal(0m, liabilities.OverdueTotal);
+    }
+
+    [Fact]
+    public async Task Summary_CashInflow_NetsChangeGiven()
+    {
+        // Sale total is 70 but the customer tenders 100 cash, so 30 change is returned.
+        // The drawer keeps 70; inflow must not be overstated by the change.
+        AddSaleFull(70m, 0m, 20m, new DateTime(2026, 1, 10), payments: (PaymentMethod.Cash, 100m));
+
+        var summary = await Service.GetSummaryAsync(Jan, Feb);
+
+        Assert.Equal(70m, summary.CashInflows);
+    }
+
+    [Fact]
+    public async Task CashReconciliation_NetsChangeGiven()
+    {
+        var open = _db.AddCashSession(open: true);
+        AddSaleFull(70m, 0m, 20m, DateTime.Now, cashSessionId: open.Id, payments: (PaymentMethod.Cash, 100m));
+
+        var recon = await Service.GetCashReconciliationAsync();
+
+        var row = recon.Single(r => r.SessionId == open.Id);
+        Assert.Equal(70m, row.CashInflows);
+        Assert.Equal(70m, row.ExpectedClosing);
+    }
+
+    [Fact]
     public async Task MonthlySeries_LengthAndValues()
     {
         AddSaleFull(1000m, 100m, 400m, DateTime.Now);

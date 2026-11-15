@@ -39,7 +39,9 @@ public sealed class ExpenseService(AppDbContext db) : IExpenseService, IExpenseQ
         db.Expenses.Add(expense);
         await db.SaveChangesAsync(cancellationToken);
 
-        if (request.CashSessionId is { } sessionId)
+        // Only a cash expense moves money out of the drawer; card/bank expenses never
+        // affect the cash session even when one is linked for reporting.
+        if (request.CashSessionId is { } sessionId && request.PaymentMethod == PaymentMethod.Cash)
         {
             db.CashMovements.Add(new CashMovement
             {
@@ -74,6 +76,8 @@ public sealed class ExpenseService(AppDbContext db) : IExpenseService, IExpenseQ
         expense.PaymentMethod = request.PaymentMethod;
         expense.ReferenceNumber = NullIfBlank(request.ReferenceNumber);
         expense.Notes = NullIfBlank(request.Notes);
+
+        await SyncCashMovementAsync(expense, cancellationToken);
 
         await db.SaveChangesAsync(cancellationToken);
         return await GetByIdAsync(expense.Id, cancellationToken) ?? throw new InvalidOperationException("Expense not found after update.");
@@ -203,9 +207,10 @@ public sealed class ExpenseService(AppDbContext db) : IExpenseService, IExpenseQ
         var todayEnd = todayStart.AddDays(1);
 
         var total = await db.Expenses.SumAsync(e => e.Amount, cancellationToken);
-        var month = await db.Expenses.Where(e => e.ExpenseDate >= monthStart).SumAsync(e => e.Amount, cancellationToken);
+        var monthEnd = monthStart.AddMonths(1);
+        var month = await db.Expenses.Where(e => e.ExpenseDate >= monthStart && e.ExpenseDate < monthEnd).SumAsync(e => e.Amount, cancellationToken);
         var today = await db.Expenses.Where(e => e.ExpenseDate >= todayStart && e.ExpenseDate < todayEnd).SumAsync(e => e.Amount, cancellationToken);
-        var monthCount = await db.Expenses.CountAsync(e => e.ExpenseDate >= monthStart, cancellationToken);
+        var monthCount = await db.Expenses.CountAsync(e => e.ExpenseDate >= monthStart && e.ExpenseDate < monthEnd, cancellationToken);
         var categoryCount = await db.ExpenseCategories.CountAsync(cancellationToken);
 
         return new ExpenseStatsDto
@@ -307,6 +312,45 @@ public sealed class ExpenseService(AppDbContext db) : IExpenseService, IExpenseQ
             ?? throw new InvalidOperationException($"Cash session {id} was not found.");
         if (session.Status != CashSessionStatus.Open)
             throw new InvalidOperationException("An expense can only be linked to an open cash session.");
+    }
+
+    // Keep the drawer ledger in step with the expense: exactly one cash-out movement when the
+    // expense is cash against an open session, and none when it is non-cash or unlinked.
+    private async Task SyncCashMovementAsync(Expense expense, CancellationToken cancellationToken)
+    {
+        var existing = await db.CashMovements
+            .Where(m => m.MovementType == CashMovementType.Expense && m.ReferenceId == expense.Id)
+            .ToListAsync(cancellationToken);
+
+        if (expense.PaymentMethod == PaymentMethod.Cash && expense.CashSessionId is { } sessionId)
+        {
+            if (existing.Count == 0)
+            {
+                db.CashMovements.Add(new CashMovement
+                {
+                    CashSessionId = sessionId,
+                    MovementType = CashMovementType.Expense,
+                    Direction = CashDirection.Out,
+                    Amount = expense.Amount,
+                    ReferenceId = expense.Id,
+                    Note = expense.Description,
+                    CreatedAt = DateTime.Now
+                });
+                return;
+            }
+
+            var movement = existing[0];
+            movement.CashSessionId = sessionId;
+            movement.Direction = CashDirection.Out;
+            movement.Amount = expense.Amount;
+            movement.Note = expense.Description;
+            for (var i = 1; i < existing.Count; i++)
+                db.CashMovements.Remove(existing[i]);
+        }
+        else if (existing.Count > 0)
+        {
+            db.CashMovements.RemoveRange(existing);
+        }
     }
 
     private static string RequireDescription(string? description)

@@ -83,6 +83,59 @@ public sealed class ExpenseServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Create_NonCashWithOpenSession_DoesNotRecordCashMovement()
+    {
+        var session = _db.AddCashSession(open: true);
+        await Service.CreateAsync(new ExpenseCreateRequest
+        {
+            Description = "Card fuel",
+            Amount = 200m,
+            PaymentMethod = PaymentMethod.Card,
+            CashSessionId = session.Id
+        });
+
+        Assert.Empty(Db.CashMovements);
+    }
+
+    [Fact]
+    public async Task Update_Amount_SyncsCashMovement()
+    {
+        var session = _db.AddCashSession(open: true);
+        var created = await Service.CreateAsync(new ExpenseCreateRequest
+        {
+            Description = "Cash snack",
+            Amount = 100m,
+            PaymentMethod = PaymentMethod.Cash,
+            CashSessionId = session.Id
+        });
+
+        await Service.UpdateAsync(new ExpenseUpdateRequest
+        {
+            Id = created.Id,
+            Description = "Cash snack",
+            Amount = 150m,
+            ExpenseDate = new DateTime(2026, 1, 1),
+            PaymentMethod = PaymentMethod.Cash
+        });
+
+        var movement = await Db.CashMovements.SingleAsync(m => m.MovementType == CashMovementType.Expense && m.ReferenceId == created.Id);
+        Assert.Equal(150m, movement.Amount);
+    }
+
+    [Fact]
+    public async Task Stats_MonthExcludesFutureDatedExpenses()
+    {
+        var cat = await CategoryAsync();
+        var monthStart = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+        await Service.CreateAsync(new ExpenseCreateRequest { Description = "Now", Amount = 300m, CategoryId = cat, ExpenseDate = DateTime.Now });
+        await Service.CreateAsync(new ExpenseCreateRequest { Description = "Future", Amount = 999m, CategoryId = cat, ExpenseDate = monthStart.AddMonths(1).AddDays(1) });
+
+        var stats = await Service.GetStatsAsync();
+
+        Assert.Equal(300m, stats.MonthExpenses);
+    }
+
+    [Fact]
     public async Task Create_WithClosedCashSession_Throws()
     {
         var session = _db.AddCashSession(open: false);

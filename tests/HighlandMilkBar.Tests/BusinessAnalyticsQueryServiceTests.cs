@@ -200,6 +200,29 @@ public sealed class BusinessAnalyticsQueryServiceTests : IAsyncLifetime
         Assert.Equal(payments, await Db.Payments.CountAsync());
     }
 
+    [Fact]
+    public async Task BusinessAlerts_KeepsEachDistinctLowStockProduct()
+    {
+        // Clear seeded products so the assertion is deterministic.
+        Db.Products.RemoveRange(Db.Products);
+        Db.Categories.RemoveRange(Db.Categories);
+        await Db.SaveChangesAsync();
+
+        // Two tracked products each holding 1 sellable unit but a reorder level of 5 are
+        // both in the LowStock band (sellable > 0 and <= reorder). Distinct low-stock alerts
+        // must both survive instead of collapsing into a single record.
+        var (_, prodA) = await AddCategoryProduct("CatA", 40m, 100m, 50m, 5m);
+        var (_, prodB) = await AddCategoryProduct("CatB", 40m, 100m, 50m, 5m);
+        _db.AddBatch(prodA, "B-A", 1m, 40m, DateTime.Today, DateTime.Today.AddDays(30));
+        _db.AddBatch(prodB, "B-B", 1m, 40m, DateTime.Today, DateTime.Today.AddDays(30));
+        await Db.SaveChangesAsync();
+
+        var alerts = await BuildService().GetBusinessAlertsAsync(ReportingPeriod.FromPreset(ReportingPreset.ThisMonth));
+
+        var lowStock = alerts.Where(a => a.Type == "Inventory.LowStock").ToList();
+        Assert.Equal(2, lowStock.Count);
+    }
+
     private async Task AddExpenseAsync(decimal amount, DateTime date)
     {
         Db.Expenses.Add(new Expense { Description = "Test", Amount = amount, ExpenseDate = date, PaymentMethod = PaymentMethod.Cash });

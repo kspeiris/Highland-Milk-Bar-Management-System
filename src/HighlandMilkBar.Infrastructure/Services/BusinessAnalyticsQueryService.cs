@@ -415,12 +415,21 @@ public sealed class BusinessAnalyticsQueryService(
                 GeneratedAt = now
             });
 
-        return alerts
-            .GroupBy(a => a.Key)
-            .Select(g => g.First())
+        var ordered = alerts
             .OrderByDescending(a => a.Severity)
             .ThenBy(a => a.Category)
             .ToList();
+
+        // Deduplicate only genuine duplicates (same type + same record). Alerts without a
+        // related record (low stock, expiry, etc.) are distinct and must all be kept.
+        var seen = new HashSet<string>();
+        var distinct = new List<BusinessAlertDto>(ordered.Count);
+        foreach (var alert in ordered)
+        {
+            if (alert.RelatedRecordId is not null && !seen.Add(alert.Key)) continue;
+            distinct.Add(alert);
+        }
+        return distinct;
     }
 
     // ---------------- Helpers ----------------

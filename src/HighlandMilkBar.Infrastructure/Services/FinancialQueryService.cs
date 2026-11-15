@@ -174,7 +174,9 @@ public sealed class FinancialQueryService(AppDbContext db) : IFinancialQueryServ
                 var paid = g.Sum(r => r.AmountPaid);
                 var outstanding = g.Sum(r => r.TotalAmount - r.AmountPaid);
                 var unpaid = g.Where(r => r.TotalAmount - r.AmountPaid > 0m).ToList();
-                var earliestDue = unpaid.Where(r => r.DueDate != null).Select(r => r.DueDate!.Value).DefaultIfEmpty().Min();
+                var earliestDue = unpaid.Any(r => r.DueDate != null)
+                    ? unpaid.Where(r => r.DueDate != null).Min(r => r.DueDate!.Value)
+                    : (DateTime?)null;
                 var overdue = unpaid
                     .Where(r => r.DueDate != null && r.DueDate.Value.Date < asOf)
                     .Sum(r => r.TotalAmount - r.AmountPaid);
@@ -187,7 +189,7 @@ public sealed class FinancialQueryService(AppDbContext db) : IFinancialQueryServ
                     ReceivedValue = Round(g.Sum(r => r.TotalAmount)),
                     AmountPaid = Round(paid),
                     Outstanding = Round(outstanding),
-                    EarliestDueDate = unpaid.Any(r => r.DueDate != null) ? earliestDue : null,
+                    EarliestDueDate = earliestDue,
                     OverdueAmount = Round(overdue),
                     AgeingBucket = AgeingBucket(earliestDue, asOf)
                 };
@@ -233,7 +235,9 @@ public sealed class FinancialQueryService(AppDbContext db) : IFinancialQueryServ
         var paid = purchases.Sum(p => p.AmountPaid);
         var outstanding = purchases.Sum(p => p.TotalAmount - p.AmountPaid);
         var unpaid = purchases.Where(p => p.TotalAmount - p.AmountPaid > 0m).ToList();
-        var earliest = unpaid.Where(p => p.DueDate != null).Select(p => p.DueDate!.Value).DefaultIfEmpty().Min();
+        var earliest = unpaid.Any(p => p.DueDate != null)
+            ? unpaid.Where(p => p.DueDate != null).Min(p => p.DueDate!.Value)
+            : (DateTime?)null;
 
         return new SupplierLiabilityLineDto
         {
@@ -243,7 +247,7 @@ public sealed class FinancialQueryService(AppDbContext db) : IFinancialQueryServ
             ReceivedValue = Round(received),
             AmountPaid = Round(paid),
             Outstanding = Round(outstanding),
-            EarliestDueDate = unpaid.Any(p => p.DueDate != null) ? earliest : null,
+            EarliestDueDate = earliest,
             OverdueAmount = Round(unpaid.Where(p => p.DueDate != null && p.DueDate.Value.Date < today).Sum(p => p.TotalAmount - p.AmountPaid)),
             AgeingBucket = AgeingBucket(earliest, today)
         };
@@ -323,9 +327,15 @@ public sealed class FinancialQueryService(AppDbContext db) : IFinancialQueryServ
         var sessionIds = sessions.Select(s => s.Id).ToList();
 
         var cashInflows = await db.Payments.AsNoTracking()
-            .Where(p => p.Method == PaymentMethod.Cash && p.Sale != null && p.Sale.CashSessionId != null && p.Sale!.Status != SaleStatus.Voided)
-            .Select(p => new { SessionId = p.Sale!.CashSessionId, p.Amount })
+            .Where(p => p.Sale != null && p.Sale.CashSessionId != null && p.Sale.Status != SaleStatus.Voided)
+            .Select(p => new { SaleId = p.SaleId, SessionId = p.Sale!.CashSessionId!.Value, Total = p.Sale.TotalAmount, p.Method, p.Amount })
             .ToListAsync(cancellationToken);
+        // Net cash retained per sale (tendered cash minus change) so the drawer balance is correct.
+        var netCashSales = cashInflows
+            .GroupBy(p => p.SaleId)
+            .Where(g => g.Any(p => p.Method == PaymentMethod.Cash))
+            .Select(g => new { SessionId = g.First().SessionId, Amount = g.First().Total - g.Where(p => p.Method != PaymentMethod.Cash).Sum(p => p.Amount) })
+            .ToList();
 
         var expenseOutflows = await db.Expenses.AsNoTracking()
             .Where(e => e.CashSessionId != null && e.PaymentMethod == PaymentMethod.Cash)
@@ -340,7 +350,7 @@ public sealed class FinancialQueryService(AppDbContext db) : IFinancialQueryServ
         var result = new List<CashReconciliationDto>(sessions.Count);
         foreach (var s in sessions)
         {
-            var inAmount = cashInflows.Where(r => r.SessionId == s.Id).Sum(r => r.Amount);
+            var inAmount = netCashSales.Where(r => r.SessionId == s.Id).Sum(r => r.Amount);
             var outAmount = expenseOutflows.Where(r => r.SessionId == s.Id).Sum(r => r.Amount);
             foreach (var m in manual.Where(m => m.CashSessionId == s.Id))
             {
@@ -373,11 +383,18 @@ public sealed class FinancialQueryService(AppDbContext db) : IFinancialQueryServ
 
     private async Task<decimal> SumCashSalePaymentsAsync(DateTime from, DateTime to, CancellationToken cancellationToken)
     {
-        var amounts = await db.Payments.AsNoTracking()
-            .Where(p => p.PaidAt >= from && p.PaidAt < to && p.Method == PaymentMethod.Cash && p.Sale!.Status != SaleStatus.Voided)
-            .Select(p => p.Amount)
+        // Change given to a customer is never persisted, so the cash actually retained in the
+        // drawer is the cash share of the sale total (total minus non-cash tenders), not the
+        // tendered cash amount. Summing tendered cash would overstate inflows by the change.
+        var payments = await db.Payments.AsNoTracking()
+            .Where(p => p.PaidAt >= from && p.PaidAt < to && p.Sale != null && p.Sale.Status != SaleStatus.Voided)
+            .Select(p => new { p.SaleId, Total = p.Sale!.TotalAmount, p.Method, p.Amount })
             .ToListAsync(cancellationToken);
-        return amounts.Sum();
+
+        return payments
+            .GroupBy(p => p.SaleId)
+            .Where(g => g.Any(p => p.Method == PaymentMethod.Cash))
+            .Sum(g => g.First().Total - g.Where(p => p.Method != PaymentMethod.Cash).Sum(p => p.Amount));
     }
 
     private async Task<decimal> SumSupplierPaymentsAsync(DateTime from, DateTime to, PaymentMethod method, CancellationToken cancellationToken)
@@ -426,9 +443,11 @@ public sealed class FinancialQueryService(AppDbContext db) : IFinancialQueryServ
         }).ToList();
     }
 
-    private static string AgeingBucket(DateTime earliestDue, DateTime asOf)
+    private static string AgeingBucket(DateTime? earliestDue, DateTime asOf)
     {
-        var days = (asOf - earliestDue.Date).Days;
+        // An invoice with no due date is not overdue; it is reported as current.
+        if (earliestDue is not { } due) return "Current";
+        var days = (asOf - due.Date).Days;
         if (days <= 0) return "Current";
         return days switch
         {

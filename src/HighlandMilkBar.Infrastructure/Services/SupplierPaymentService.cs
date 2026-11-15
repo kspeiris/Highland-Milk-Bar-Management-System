@@ -28,6 +28,10 @@ public sealed class SupplierPaymentService(AppDbContext db) : ISupplierPaymentSe
         if (purchase.Status != PurchaseStatus.Received)
             throw new InvalidOperationException("Payments can only be recorded against a received purchase.");
 
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+
+        // Recompute the paid total inside the transaction so a stale read cannot let two
+        // payments both pass the outstanding check and overpay the purchase.
         var paid = await db.SupplierPayments
             .Where(p => p.PurchaseId == purchase.Id)
             .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0m;
@@ -36,8 +40,6 @@ public sealed class SupplierPaymentService(AppDbContext db) : ISupplierPaymentSe
         if (request.Amount > outstanding + 0.005m)
             throw new InvalidOperationException(
                 $"Payment {request.Amount:0.##} exceeds the outstanding balance {outstanding:0.##}.");
-
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
 
         var payment = new SupplierPayment
         {

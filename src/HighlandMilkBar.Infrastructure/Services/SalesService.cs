@@ -204,6 +204,24 @@ public sealed class SalesService(AppDbContext db, IInventoryService inventory, I
         if (sale.Status is SaleStatus.Voided or SaleStatus.Returned)
             throw new InvalidOperationException("This sale cannot be returned in its current state.");
 
+        // Validate quantities as a group so duplicate lines in one request cannot
+        // independently pass the remaining-quantity check and over-return an item.
+        foreach (var requestedGroup in request.Lines.GroupBy(line => line.SaleItemId))
+        {
+            var saleItem = sale.Items.FirstOrDefault(i => i.Id == requestedGroup.Key)
+                ?? throw new InvalidOperationException("Return line references an item that is not part of the sale.");
+            var alreadyReturned = await db.SalesReturnItems
+                .Where(ri => ri.SaleItemId == saleItem.Id && ri.SalesReturn!.Status == SalesReturnStatus.Completed)
+                .SumAsync(ri => ri.Quantity, cancellationToken);
+            var requestedQuantity = requestedGroup.Sum(line => line.Quantity);
+            if (requestedGroup.Any(line => line.Quantity <= 0) || requestedQuantity > saleItem.Quantity - alreadyReturned)
+                throw new InvalidOperationException(
+                    $"Return quantity for '{saleItem.ItemNameSnapshot}' exceeds the remaining returnable quantity.");
+        }
+
+        var discountedLinesTotal = sale.Items.Sum(item => item.LineTotal);
+        var orderDiscount = Math.Max(0m, sale.DiscountAmount - sale.Items.Sum(item => item.DiscountAmount));
+
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
 
         var salesReturn = new SalesReturn
@@ -220,22 +238,19 @@ public sealed class SalesService(AppDbContext db, IInventoryService inventory, I
 
         var totalAmount = 0m;
         var anyRestock = false;
+        var returnedCogs = 0m;
 
         foreach (var line in request.Lines)
         {
             var saleItem = sale.Items.FirstOrDefault(i => i.Id == line.SaleItemId)
                 ?? throw new InvalidOperationException("Return line references an item that is not part of the sale.");
 
-            var alreadyReturned = await db.SalesReturnItems
-                .Where(ri => ri.SaleItemId == saleItem.Id
-                    && ri.SalesReturn!.Status == SalesReturnStatus.Completed)
-                .SumAsync(ri => ri.Quantity, cancellationToken);
-
-            if (line.Quantity <= 0 || line.Quantity > saleItem.Quantity - alreadyReturned)
-                throw new InvalidOperationException(
-                    $"Return quantity for '{saleItem.ItemNameSnapshot}' exceeds the remaining returnable quantity.");
-
-            var lineTotal = line.Quantity * saleItem.UnitPrice;
+            var lineOrderDiscount = discountedLinesTotal > 0
+                ? orderDiscount * saleItem.LineTotal / discountedLinesTotal
+                : 0m;
+            var refundableLineTotal = Math.Max(0m, saleItem.LineTotal - lineOrderDiscount);
+            var effectiveUnitPrice = refundableLineTotal / saleItem.Quantity;
+            var lineTotal = line.Quantity * effectiveUnitPrice;
             totalAmount += lineTotal;
 
             db.SalesReturnItems.Add(new SalesReturnItem
@@ -245,7 +260,7 @@ public sealed class SalesService(AppDbContext db, IInventoryService inventory, I
                 ProductId = saleItem.ProductId,
                 ItemNameSnapshot = saleItem.ItemNameSnapshot,
                 Quantity = line.Quantity,
-                UnitPrice = saleItem.UnitPrice,
+                UnitPrice = effectiveUnitPrice,
                 Condition = line.Condition,
                 LineTotal = lineTotal
             });
@@ -257,16 +272,28 @@ public sealed class SalesService(AppDbContext db, IInventoryService inventory, I
                 {
                     await RestockAsync(saleItem, line.Quantity, salesReturn.Id, product, cancellationToken);
                     anyRestock = true;
+                    // Goods returned to stock reverse their share of cost of goods sold so a
+                    // restocked return does not leave a phantom loss on the income statement.
+                    returnedCogs += line.Quantity * saleItem.UnitCostSnapshot;
                 }
             }
         }
 
         salesReturn.TotalAmount = totalAmount;
         salesReturn.Restocked = anyRestock;
+        sale.CostOfGoodsSold = Math.Max(0m, sale.CostOfGoodsSold - returnedCogs);
 
-        var totalReturnedQty = request.Lines.Sum(l => l.Quantity);
-        var soldQty = sale.Items.Sum(i => i.Quantity);
-        sale.Status = totalReturnedQty >= soldQty ? SaleStatus.Returned : SaleStatus.PartiallyReturned;
+        await db.SaveChangesAsync(cancellationToken);
+
+        var returnedQuantities = await db.SalesReturnItems
+            .Where(ri => ri.SaleItemId.HasValue && sale.Items.Select(i => i.Id).Contains(ri.SaleItemId.Value)
+                && ri.SalesReturn!.Status == SalesReturnStatus.Completed)
+            .GroupBy(ri => ri.SaleItemId!.Value)
+            .Select(group => new { SaleItemId = group.Key, Quantity = group.Sum(ri => ri.Quantity) })
+            .ToDictionaryAsync(group => group.SaleItemId, group => group.Quantity, cancellationToken);
+        sale.Status = sale.Items.All(item => returnedQuantities.GetValueOrDefault(item.Id) >= item.Quantity)
+            ? SaleStatus.Returned
+            : SaleStatus.PartiallyReturned;
 
         await db.SaveChangesAsync(cancellationToken);
 

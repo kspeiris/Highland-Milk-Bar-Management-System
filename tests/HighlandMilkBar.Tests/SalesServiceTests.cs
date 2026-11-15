@@ -442,6 +442,33 @@ public sealed class SalesServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Return_Restock_ReversesCostOfGoodsSold()
+    {
+        var cat = await CategoryAsync();
+        var p = await ProductAsync(cat, price: 20m, cost: 10m);
+        await StockAsync(p.Id, "B", 100m, 10m);
+        var result = await Sales.CheckoutAsync(CashSale((p.Id, 3m, 20m)));
+        Assert.Equal(30m, (await Db.Sales.FindAsync(result.SaleId))!.CostOfGoodsSold);
+        var itemId = (await Sales.GetByIdAsync(result.SaleId))!.Items.Single().SaleItemId;
+
+        // Restocking one of three units restores 10 of cost.
+        await Sales.ProcessReturnAsync(new SalesReturnRequest
+        {
+            SaleId = result.SaleId,
+            Lines = new List<ReturnLineRequest> { new() { SaleItemId = itemId, Quantity = 1m, Condition = ReturnCondition.Restock } }
+        });
+        Assert.Equal(20m, (await Db.Sales.FindAsync(result.SaleId))!.CostOfGoodsSold);
+
+        // Returning the remaining two as damaged does not restore cost (goods are lost).
+        await Sales.ProcessReturnAsync(new SalesReturnRequest
+        {
+            SaleId = result.SaleId,
+            Lines = new List<ReturnLineRequest> { new() { SaleItemId = itemId, Quantity = 2m, Condition = ReturnCondition.Damaged } }
+        });
+        Assert.Equal(20m, (await Db.Sales.FindAsync(result.SaleId))!.CostOfGoodsSold);
+    }
+
+    [Fact]
     public async Task Return_Partial_KeepsPartiallyReturnedStatus()
     {
         var (saleId, _, itemId) = await CompletedSaleAsync(qty: 5m);
@@ -454,6 +481,67 @@ public sealed class SalesServiceTests : IAsyncLifetime
 
         Assert.Equal(2m * 20m, result.TotalAmount);
         Assert.Equal(SaleStatus.PartiallyReturned, (await Db.Sales.FindAsync(saleId))!.Status);
+    }
+
+    [Fact]
+    public async Task Return_SequentialPartialReturns_MarksSaleReturnedWhenAllQuantitiesAreReturned()
+    {
+        var (saleId, _, itemId) = await CompletedSaleAsync(qty: 3m);
+
+        await Sales.ProcessReturnAsync(new SalesReturnRequest
+        {
+            SaleId = saleId,
+            Lines = new List<ReturnLineRequest> { new() { SaleItemId = itemId, Quantity = 1m } }
+        });
+        await Sales.ProcessReturnAsync(new SalesReturnRequest
+        {
+            SaleId = saleId,
+            Lines = new List<ReturnLineRequest> { new() { SaleItemId = itemId, Quantity = 2m } }
+        });
+
+        Assert.Equal(SaleStatus.Returned, (await Db.Sales.FindAsync(saleId))!.Status);
+    }
+
+    [Fact]
+    public async Task Return_RefundsLineAndOrderDiscountsProportionally()
+    {
+        var cat = await CategoryAsync();
+        var product = await ProductAsync(cat, price: 20m);
+        await StockAsync(product.Id, "B", 10m, 10m);
+        var sale = await Sales.CheckoutAsync(new SaleCheckoutRequest
+        {
+            Items = new List<SaleLineRequest>
+            {
+                new() { ProductId = product.Id, Quantity = 2m, UnitPrice = 20m, DiscountAmount = 4m }
+            },
+            OrderDiscount = 6m,
+            Payments = new List<PaymentRequest> { new() { Method = PaymentMethod.Cash, Amount = 30m } }
+        });
+        var detail = await Sales.GetByIdAsync(sale.SaleId);
+
+        var result = await Sales.ProcessReturnAsync(new SalesReturnRequest
+        {
+            SaleId = sale.SaleId,
+            Lines = new List<ReturnLineRequest> { new() { SaleItemId = detail!.Items.Single().SaleItemId, Quantity = 1m } }
+        });
+
+        Assert.Equal(15m, result.TotalAmount);
+    }
+
+    [Fact]
+    public async Task Return_RejectsDuplicateLinesThatExceedRemainingQuantity()
+    {
+        var (saleId, _, itemId) = await CompletedSaleAsync(qty: 3m);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => Sales.ProcessReturnAsync(new SalesReturnRequest
+        {
+            SaleId = saleId,
+            Lines = new List<ReturnLineRequest>
+            {
+                new() { SaleItemId = itemId, Quantity = 2m },
+                new() { SaleItemId = itemId, Quantity = 2m }
+            }
+        }));
     }
 
     [Fact]
