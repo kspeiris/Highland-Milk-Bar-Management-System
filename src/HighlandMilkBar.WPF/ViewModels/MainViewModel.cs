@@ -24,6 +24,7 @@ public sealed class MainViewModel : ObservableObject
     private readonly ILoyaltyService _loyaltyService;
     private readonly IExpenseService _expenseService;
     private readonly IExpenseQueryService _expenseQueryService;
+    private readonly IFinancialQueryService _financialQueryService;
     private object? _currentViewModel;
     private string _currentTitle = "Dashboard";
     private string _currentSubtitle = "Your outlet at a glance";
@@ -49,7 +50,8 @@ public sealed class MainViewModel : ObservableObject
         ICustomerQueryService customerQueryService,
         ILoyaltyService loyaltyService,
         IExpenseService expenseService,
-        IExpenseQueryService expenseQueryService)
+        IExpenseQueryService expenseQueryService,
+        IFinancialQueryService financialQueryService)
     {
         _dashboardService = dashboardService;
         _productService = productService;
@@ -69,6 +71,7 @@ public sealed class MainViewModel : ObservableObject
         _loyaltyService = loyaltyService;
         _expenseService = expenseService;
         _expenseQueryService = expenseQueryService;
+        _financialQueryService = financialQueryService;
 
         NavItems = new ObservableCollection<NavItemViewModel>
         {
@@ -171,6 +174,7 @@ public sealed class MainViewModel : ObservableObject
             "Suppliers" => new SuppliersViewModel(_supplierService, _supplierPaymentService, _purchaseService),
             "Customers" => new CustomersViewModel(_customerService, _customerQueryService, _loyaltyService),
             "Expenses" => new ExpensesViewModel(_expenseService, _expenseQueryService),
+            "Finance" => new FinancialViewModel(_financialQueryService),
             _ => new PlaceholderViewModel(key, CurrentSubtitle, GetScaffoldDescription(key), GetPlannedStep(key), GetGlyph(key))
         };
 
@@ -186,6 +190,8 @@ public sealed class MainViewModel : ObservableObject
             _ = customers.LoadAsync();
         if (CurrentViewModel is ExpensesViewModel expenses)
             _ = expenses.LoadAsync();
+        if (CurrentViewModel is FinancialViewModel financial)
+            _ = financial.LoadAsync();
     }
 
     private static string GetPlannedStep(string key) => key switch
