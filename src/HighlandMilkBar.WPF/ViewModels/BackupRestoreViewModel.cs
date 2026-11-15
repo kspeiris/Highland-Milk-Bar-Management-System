@@ -76,7 +76,7 @@ public sealed class BackupRestoreViewModel : ObservableObject
         _query = query;
         RefreshCommand = new RelayCommand(_ => _ = LoadAsync());
         CreateBackupCommand = new RelayCommand(_ => _ = CreateManualBackupAsync());
-        OpenFolderCommand = new RelayCommand(_ => OpenBackupFolder());
+        OpenFolderCommand = new RelayCommand(_ => _ = OpenBackupFolderAsync());
     }
 
     public IBackupService Backup => _backup;
@@ -280,11 +280,11 @@ public sealed class BackupRestoreViewModel : ObservableObject
         }
     }
 
-    private void OpenBackupFolder()
+    private async Task OpenBackupFolderAsync()
     {
         try
         {
-            var settings = _query.GetSettingsAsync().GetAwaiter().GetResult();
+            var settings = await _query.GetSettingsAsync();
             var folder = string.IsNullOrWhiteSpace(settings.Location)
                 ? BackupDefaultsFolder()
                 : settings.Location;
