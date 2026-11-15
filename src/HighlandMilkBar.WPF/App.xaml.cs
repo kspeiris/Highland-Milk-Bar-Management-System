@@ -2,6 +2,7 @@ using System.IO;
 using System.Windows;
 using HighlandMilkBar.Infrastructure.Data;
 using HighlandMilkBar.Infrastructure.Services;
+using HighlandMilkBar.Infrastructure.Services.Reports;
 using HighlandMilkBar.WPF.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,7 +31,6 @@ public partial class App : System.Windows.Application
 
             var productService = new ProductService(db);
             var categoryService = new CategoryService(db);
-            var dashboardService = new DashboardService(db);
             var inventoryService = new InventoryService(db);
             var inventoryQueryService = new InventoryQueryService(db);
             var receiptService = new ReceiptService(db);
@@ -43,12 +43,20 @@ public partial class App : System.Windows.Application
             var customerService = new CustomerService(db);
             var customerQueryService = new CustomerQueryService(db);
             var expenseService = new ExpenseService(db);
+            var financialQueryService = new FinancialQueryService(db);
             var salesService = new SalesService(db, inventoryService, loyaltyService);
+            var businessAnalytics = new BusinessAnalyticsQueryService(
+                db, financialQueryService, inventoryQueryService, customerQueryService, milkBarService, purchaseService, expenseService);
+            var reportCatalog = new ReportCatalogService();
+            var reportQuery = new ReportQueryService(
+                db, businessAnalytics, financialQueryService, inventoryQueryService, customerQueryService, purchaseService, expenseService, milkBarService);
+            var reportExport = new ReportExportService();
             var mainViewModel = new MainViewModel(
-                dashboardService, productService, categoryService, inventoryService, inventoryQueryService,
+                businessAnalytics, productService, categoryService, inventoryService, inventoryQueryService,
                 salesService, salesService, receiptService, milkBarService, recipeService,
                 purchaseService, supplierService, supplierPaymentService,
-                customerService, customerQueryService, loyaltyService, expenseService, expenseService);
+                customerService, customerQueryService, loyaltyService, expenseService, expenseService,
+                financialQueryService, reportCatalog, reportQuery, reportExport);
             await mainViewModel.InitializeAsync();
 
             var mainWindow = new MainWindow { DataContext = mainViewModel };

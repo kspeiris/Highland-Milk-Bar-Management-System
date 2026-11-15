@@ -6,7 +6,7 @@ namespace HighlandMilkBar.WPF.ViewModels;
 
 public sealed class MainViewModel : ObservableObject
 {
-    private readonly IDashboardService _dashboardService;
+    private readonly IBusinessAnalyticsQueryService _analytics;
     private readonly IProductService _productService;
     private readonly ICategoryService _categoryService;
     private readonly IInventoryService _inventoryService;
@@ -24,6 +24,10 @@ public sealed class MainViewModel : ObservableObject
     private readonly ILoyaltyService _loyaltyService;
     private readonly IExpenseService _expenseService;
     private readonly IExpenseQueryService _expenseQueryService;
+    private readonly IFinancialQueryService _financialQueryService;
+    private readonly IReportCatalogService _reportCatalog;
+    private readonly IReportQueryService _reportQuery;
+    private readonly IReportExportService _reportExport;
     private object? _currentViewModel;
     private string _currentTitle = "Dashboard";
     private string _currentSubtitle = "Your outlet at a glance";
@@ -32,7 +36,7 @@ public sealed class MainViewModel : ObservableObject
     private double _sidebarWidth = 248;
 
     public MainViewModel(
-        IDashboardService dashboardService,
+        IBusinessAnalyticsQueryService analytics,
         IProductService productService,
         ICategoryService categoryService,
         IInventoryService inventoryService,
@@ -49,9 +53,13 @@ public sealed class MainViewModel : ObservableObject
         ICustomerQueryService customerQueryService,
         ILoyaltyService loyaltyService,
         IExpenseService expenseService,
-        IExpenseQueryService expenseQueryService)
+        IExpenseQueryService expenseQueryService,
+        IFinancialQueryService financialQueryService,
+        IReportCatalogService reportCatalog,
+        IReportQueryService reportQuery,
+        IReportExportService reportExport)
     {
-        _dashboardService = dashboardService;
+        _analytics = analytics;
         _productService = productService;
         _categoryService = categoryService;
         _inventoryService = inventoryService;
@@ -69,10 +77,15 @@ public sealed class MainViewModel : ObservableObject
         _loyaltyService = loyaltyService;
         _expenseService = expenseService;
         _expenseQueryService = expenseQueryService;
+        _financialQueryService = financialQueryService;
+        _reportCatalog = reportCatalog;
+        _reportQuery = reportQuery;
+        _reportExport = reportExport;
 
         NavItems = new ObservableCollection<NavItemViewModel>
         {
             new("Dashboard", "⌂", "Dashboard"),
+            new("Analytics", "◔", "Analytics"),
             new("Point of Sale", "▣", "Point of Sale"),
             new("Sales History", "☰", "Sales History"),
             new("Products", "▤", "Products"),
@@ -144,6 +157,7 @@ public sealed class MainViewModel : ObservableObject
         CurrentSubtitle = key switch
         {
             "Dashboard" => "Your outlet at a glance",
+            "Analytics" => "Business-wide performance insights",
             "Point of Sale" => "Fast checkout and billing workspace",
             "Sales History" => "Past transactions, receipts and returns",
             "Products" => "Manage your product catalogue and prices",
@@ -161,7 +175,8 @@ public sealed class MainViewModel : ObservableObject
 
         CurrentViewModel = key switch
         {
-            "Dashboard" => new DashboardViewModel(_dashboardService, NavigateTo),
+            "Dashboard" => new DashboardViewModel(_analytics, NavigateTo),
+            "Analytics" => new AnalyticsViewModel(_analytics),
             "Point of Sale" => new PosViewModel(_productService, _inventoryQueryService, _salesService, _salesQueryService, _receiptService),
             "Sales History" => new SalesHistoryViewModel(_salesQueryService, _salesService, _receiptService),
             "Products" => new ProductsViewModel(_productService, _categoryService),
@@ -171,11 +186,15 @@ public sealed class MainViewModel : ObservableObject
             "Suppliers" => new SuppliersViewModel(_supplierService, _supplierPaymentService, _purchaseService),
             "Customers" => new CustomersViewModel(_customerService, _customerQueryService, _loyaltyService),
             "Expenses" => new ExpensesViewModel(_expenseService, _expenseQueryService),
+            "Finance" => new FinancialViewModel(_financialQueryService),
+            "Reports" => new ReportCentreViewModel(_reportCatalog, _reportQuery, _reportExport),
             _ => new PlaceholderViewModel(key, CurrentSubtitle, GetScaffoldDescription(key), GetPlannedStep(key), GetGlyph(key))
         };
 
         if (CurrentViewModel is DashboardViewModel dashboard)
             _ = dashboard.LoadAsync();
+        if (CurrentViewModel is AnalyticsViewModel analytics)
+            _ = analytics.LoadAsync();
         if (CurrentViewModel is ProductsViewModel products)
             _ = products.LoadAsync();
         if (CurrentViewModel is PurchasesViewModel purchases)
@@ -186,6 +205,8 @@ public sealed class MainViewModel : ObservableObject
             _ = customers.LoadAsync();
         if (CurrentViewModel is ExpensesViewModel expenses)
             _ = expenses.LoadAsync();
+        if (CurrentViewModel is FinancialViewModel financial)
+            _ = financial.LoadAsync();
     }
 
     private static string GetPlannedStep(string key) => key switch

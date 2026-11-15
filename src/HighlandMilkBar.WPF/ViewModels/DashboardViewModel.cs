@@ -1,98 +1,172 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
+using HighlandMilkBar.Application.Common;
+using HighlandMilkBar.Application.DTOs;
 using HighlandMilkBar.Application.Services;
 
 namespace HighlandMilkBar.WPF.ViewModels;
 
+/// <summary>Business overview dashboard backed by <see cref="IBusinessAnalyticsQueryService"/> (read-only).</summary>
 public sealed class DashboardViewModel : ObservableObject
 {
-    private readonly IDashboardService _dashboardService;
-    private string _revenueTodayText = "LKR 0.00";
-    private int _transactionsToday;
-    private int _activeProducts;
-    private int _lowStockItems;
+    private readonly IBusinessAnalyticsQueryService _analytics;
+    private readonly Action<string> _navigate;
+
+    private EnumOption<ReportingPreset>? _selectedPreset;
+    private string _periodLabel = string.Empty;
     private string _lastUpdatedText = "Not refreshed yet";
+    private bool _isBusy;
+    private string? _error;
 
-    public DashboardViewModel(IDashboardService dashboardService, Action<string> navigate)
+    private decimal _netSales;
+    private decimal _grossProfit;
+    private decimal _operatingProfit;
+    private decimal _expenses;
+    private int _orders;
+    private decimal _averageOrderValue;
+    private int _totalCustomers;
+    private int _newCustomers;
+    private int _repeatCustomers;
+    private decimal _physicalStockValue;
+    private decimal _sellableStockValue;
+    private int _lowStockProducts;
+    private int _expiredBatches;
+    private decimal _trendMax;
+
+    private string _netSalesChange = string.Empty;
+    private string _grossProfitChange = string.Empty;
+    private string _expensesChange = string.Empty;
+    private string _ordersChange = string.Empty;
+
+    public DashboardViewModel(IBusinessAnalyticsQueryService analytics, Action<string> navigate)
     {
-        _dashboardService = dashboardService;
-        NavigateToProductsCommand = new RelayCommand(_ => navigate("Products"));
-        NavigateToPosCommand = new RelayCommand(_ => navigate("Point of Sale"));
-        NavigateToInventoryCommand = new RelayCommand(_ => navigate("Inventory"));
-        NavigateToReportsCommand = new RelayCommand(_ => navigate("Reports"));
-        NavigateToSettingsCommand = new RelayCommand(_ => navigate("Settings"));
+        _analytics = analytics;
+        _navigate = navigate;
 
-        LoadDemoData();
+        PeriodOptions =
+        [
+            new EnumOption<ReportingPreset>("This month", ReportingPreset.ThisMonth),
+            new EnumOption<ReportingPreset>("Last month", ReportingPreset.LastMonth),
+            new EnumOption<ReportingPreset>("This week", ReportingPreset.ThisWeek),
+            new EnumOption<ReportingPreset>("Last 7 days", ReportingPreset.LastWeek),
+            new EnumOption<ReportingPreset>("This year", ReportingPreset.ThisYear),
+            new EnumOption<ReportingPreset>("Today", ReportingPreset.Today)
+        ];
+        SelectedPreset = PeriodOptions[0];
+
+        RefreshCommand = new RelayCommand(_ => _ = LoadAsync());
+        NavigateToProductsCommand = new RelayCommand(_ => _navigate("Products"));
+        NavigateToPosCommand = new RelayCommand(_ => _navigate("Point of Sale"));
+        NavigateToInventoryCommand = new RelayCommand(_ => _navigate("Inventory"));
+        NavigateToAnalyticsCommand = new RelayCommand(_ => _navigate("Analytics"));
+        NavigateToReportsCommand = new RelayCommand(_ => _navigate("Reports"));
     }
+
+    public ObservableCollection<EnumOption<ReportingPreset>> PeriodOptions { get; }
+    public ObservableCollection<SalesTrendPointDto> Trend { get; } = new();
+    public ObservableCollection<CategorySalesDto> CategorySales { get; } = new();
+    public ObservableCollection<ProductPerformanceDto> TopProducts { get; } = new();
+    public ObservableCollection<BusinessAlertDto> Alerts { get; } = new();
+
+    public RelayCommand RefreshCommand { get; }
+    public ICommand NavigateToProductsCommand { get; }
+    public ICommand NavigateToPosCommand { get; }
+    public ICommand NavigateToInventoryCommand { get; }
+    public ICommand NavigateToAnalyticsCommand { get; }
+    public ICommand NavigateToReportsCommand { get; }
 
     public string Greeting => DateTime.Now.Hour < 12 ? "Good morning" : DateTime.Now.Hour < 17 ? "Good afternoon" : "Good evening";
     public string TodayText => DateTime.Now.ToString("dddd, dd MMMM yyyy");
 
-    // Real values from the database service.
-    public string RevenueTodayText { get => _revenueTodayText; private set => SetProperty(ref _revenueTodayText, value); }
-    public int TransactionsToday { get => _transactionsToday; private set => SetProperty(ref _transactionsToday, value); }
-    public int ActiveProducts { get => _activeProducts; private set => SetProperty(ref _activeProducts, value); }
-    public int LowStockItems { get => _lowStockItems; private set => SetProperty(ref _lowStockItems, value); }
-    public string LastUpdatedText { get => _lastUpdatedText; private set => SetProperty(ref _lastUpdatedText, value); }
-
-    // Demo values for layout preview only (no profit/expense service exists yet).
-    public string ProfitTodayText { get; } = "LKR 18,450.00";
-    public string ExpensesTodayText { get; } = "LKR 4,200.00";
-    public string DemoNote => "Figures marked DEMO are sample data for layout preview only and are not real financial information.";
-
-    public ObservableCollection<RecentSaleRow> RecentSales { get; } = new();
-    public ObservableCollection<CategorySaleRow> CategorySales { get; } = new();
-    public ObservableCollection<TopProductRow> TopProducts { get; } = new();
-    public ObservableCollection<StockAlertRow> LowStockAlerts { get; } = new();
-    public ObservableCollection<StockAlertRow> NearExpiryAlerts { get; } = new();
-    public ObservableCollection<StockAlertRow> ExpiredAlerts { get; } = new();
-
-    public ICommand NavigateToProductsCommand { get; }
-    public ICommand NavigateToPosCommand { get; }
-    public ICommand NavigateToInventoryCommand { get; }
-    public ICommand NavigateToReportsCommand { get; }
-    public ICommand NavigateToSettingsCommand { get; }
-
-    public async Task LoadAsync()
+    public EnumOption<ReportingPreset>? SelectedPreset
     {
-        var snapshot = await _dashboardService.GetSnapshotAsync();
-        RevenueTodayText = $"LKR {snapshot.RevenueToday:N2}";
-        TransactionsToday = snapshot.TransactionsToday;
-        ActiveProducts = snapshot.ActiveProducts;
-        LowStockItems = snapshot.LowStockItems;
-        LastUpdatedText = $"Updated {DateTime.Now:hh:mm tt}";
+        get => _selectedPreset;
+        set
+        {
+            if (SetProperty(ref _selectedPreset, value) && value?.Value is { } preset)
+                _ = LoadAsync(preset);
+        }
     }
 
-    private void LoadDemoData()
+    public string PeriodLabel { get => _periodLabel; private set => SetProperty(ref _periodLabel, value); }
+    public string LastUpdatedText { get => _lastUpdatedText; private set => SetProperty(ref _lastUpdatedText, value); }
+    public bool IsBusy { get => _isBusy; private set => SetProperty(ref _isBusy, value); }
+    public string? Error { get => _error; private set { if (SetProperty(ref _error, value)) OnPropertyChanged(nameof(HasError)); } }
+    public bool HasError => !string.IsNullOrEmpty(Error);
+
+    public decimal NetSales { get => _netSales; private set { if (SetProperty(ref _netSales, value)) OnPropertyChanged(nameof(NetSalesChange)); } }
+    public decimal GrossProfit { get => _grossProfit; private set { if (SetProperty(ref _grossProfit, value)) OnPropertyChanged(nameof(GrossProfitChange)); } }
+    public decimal OperatingProfit { get => _operatingProfit; private set => SetProperty(ref _operatingProfit, value); }
+    public decimal Expenses { get => _expenses; private set { if (SetProperty(ref _expenses, value)) OnPropertyChanged(nameof(ExpensesChange)); } }
+    public int Orders { get => _orders; private set { if (SetProperty(ref _orders, value)) OnPropertyChanged(nameof(OrdersChange)); } }
+    public decimal AverageOrderValue { get => _averageOrderValue; private set => SetProperty(ref _averageOrderValue, value); }
+    public int TotalCustomers { get => _totalCustomers; private set => SetProperty(ref _totalCustomers, value); }
+    public int NewCustomers { get => _newCustomers; private set => SetProperty(ref _newCustomers, value); }
+    public int RepeatCustomers { get => _repeatCustomers; private set => SetProperty(ref _repeatCustomers, value); }
+    public decimal PhysicalStockValue { get => _physicalStockValue; private set => SetProperty(ref _physicalStockValue, value); }
+    public decimal SellableStockValue { get => _sellableStockValue; private set => SetProperty(ref _sellableStockValue, value); }
+    public int LowStockProducts { get => _lowStockProducts; private set => SetProperty(ref _lowStockProducts, value); }
+    public int ExpiredBatches { get => _expiredBatches; private set => SetProperty(ref _expiredBatches, value); }
+    public decimal TrendMax { get => _trendMax; private set => SetProperty(ref _trendMax, value); }
+
+    public string NetSalesChange { get => _netSalesChange; private set => SetProperty(ref _netSalesChange, value); }
+    public string GrossProfitChange { get => _grossProfitChange; private set => SetProperty(ref _grossProfitChange, value); }
+    public string ExpensesChange { get => _expensesChange; private set => SetProperty(ref _expensesChange, value); }
+    public string OrdersChange { get => _ordersChange; private set => SetProperty(ref _ordersChange, value); }
+
+    public async Task LoadAsync() => await LoadAsync(SelectedPreset?.Value ?? ReportingPreset.ThisMonth);
+
+    private async Task LoadAsync(ReportingPreset preset)
     {
-        RecentSales.Add(new RecentSaleRow("INV-1042", "2026-11-14 10:15", 3, "Cash", "LKR 1,250.00", "Completed"));
-        RecentSales.Add(new RecentSaleRow("INV-1041", "2026-11-14 09:40", 5, "Card", "LKR 2,480.00", "Completed"));
-        RecentSales.Add(new RecentSaleRow("INV-1040", "2026-11-14 09:05", 2, "Cash", "LKR 640.00", "Completed"));
-        RecentSales.Add(new RecentSaleRow("INV-1039", "2026-11-13 18:22", 4, "Cash", "LKR 1,920.00", "Returned"));
-        RecentSales.Add(new RecentSaleRow("INV-1038", "2026-11-13 17:50", 1, "Card", "LKR 350.00", "Completed"));
+        if (IsBusy) return;
+        IsBusy = true;
+        Error = null;
+        try
+        {
+            var period = ReportingPeriod.FromPreset(preset);
+            var data = await _analytics.GetOverviewAsync(period);
 
-        CategorySales.Add(new CategorySaleRow("Fresh Milk", 42, "LKR 52,500"));
-        CategorySales.Add(new CategorySaleRow("Ice Cream", 22, "LKR 27,500"));
-        CategorySales.Add(new CategorySaleRow("Milk Powder", 18, "LKR 22,500"));
-        CategorySales.Add(new CategorySaleRow("Beverages", 12, "LKR 15,000"));
-        CategorySales.Add(new CategorySaleRow("Others", 6, "LKR 7,500"));
+            PeriodLabel = data.PeriodLabel;
+            NetSales = data.Financial.NetSales;
+            GrossProfit = data.Financial.GrossProfit;
+            OperatingProfit = data.Financial.OperatingProfit;
+            Expenses = data.Financial.OperatingExpenses;
+            Orders = data.Orders;
+            AverageOrderValue = data.AverageOrderValue;
+            TotalCustomers = data.TotalCustomers;
+            NewCustomers = data.NewCustomers;
+            RepeatCustomers = data.RepeatCustomers;
+            PhysicalStockValue = data.Inventory.PhysicalStockValue;
+            SellableStockValue = data.Inventory.SellableStockValue;
+            LowStockProducts = data.Inventory.LowStockProducts;
+            ExpiredBatches = data.Inventory.ExpiredBatches;
 
-        TopProducts.Add(new TopProductRow("Highland Fresh Milk 1L", 128, "LKR 25,600"));
-        TopProducts.Add(new TopProductRow("Chocolate Milkshake", 96, "LKR 48,000"));
-        TopProducts.Add(new TopProductRow("Vanilla Ice Cream Cup", 74, "LKR 22,200"));
-        TopProducts.Add(new TopProductRow("Highland Yoghurt", 61, "LKR 12,200"));
+            NetSalesChange = data.NetSalesComparison.ChangeText;
+            GrossProfitChange = data.GrossProfitComparison.ChangeText;
+            ExpensesChange = data.ExpensesComparison.ChangeText;
+            OrdersChange = data.OrdersComparison.ChangeText;
 
-        LowStockAlerts.Add(new StockAlertRow("Highland Fresh Milk 1L", "6 bottles left"));
-        LowStockAlerts.Add(new StockAlertRow("Highland Milk Powder", "4 packs left"));
+            Replace(Trend, data.Trend);
+            Replace(CategorySales, data.CategorySales);
+            Replace(TopProducts, data.TopProducts);
+            Replace(Alerts, data.Alerts);
 
-        NearExpiryAlerts.Add(new StockAlertRow("Highland Yoghurt", "Expires in 2 days"));
-        NearExpiryAlerts.Add(new StockAlertRow("Fresh Milk batch B-1042", "Expires in 3 days"));
+            TrendMax = data.Trend.Count == 0 ? 1m : Math.Max(1m, data.Trend.Max(t => t.NetSales));
+            LastUpdatedText = $"Updated {DateTime.Now:hh:mm tt}";
+        }
+        catch (Exception ex)
+        {
+            Error = ex.Message;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
 
-        ExpiredAlerts.Add(new StockAlertRow("Curd batch B-2210", "Expired 1 day ago"));
+    private static void Replace<T>(ObservableCollection<T> target, IEnumerable<T> items)
+    {
+        target.Clear();
+        foreach (var item in items) target.Add(item);
     }
 }
-
-public sealed record RecentSaleRow(string Invoice, string Date, int Items, string Payment, string Total, string Status);
-public sealed record CategorySaleRow(string Category, int Percent, string Amount);
-public sealed record TopProductRow(string Name, int Units, string Amount);
-public sealed record StockAlertRow(string Product, string Detail);

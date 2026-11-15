@@ -1,0 +1,310 @@
+<UserControl x:Class="HighlandMilkBar.WPF.Views.FinancialView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:HighlandMilkBar.WPF.Controls"
+             Loaded="FinancialView_Loaded">
+    <UserControl.Resources>
+        <Style TargetType="TabControl">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+        <Style TargetType="TabItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="Bd" Background="Transparent" CornerRadius="9"
+                                Padding="16,9" Margin="0,0,6,0">
+                            <TextBlock x:Name="Lbl" Text="{TemplateBinding Header}" FontSize="13"
+                                       FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource PrimaryLightBrush}" />
+                                <Setter TargetName="Lbl" Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource PrimaryLightBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <DataTemplate x:Key="PnlLineTemplate">
+            <Grid Margin="0,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="13" VerticalAlignment="Center">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsTotal}" Value="True">
+                                    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <TextBlock Grid.Column="1" Text="{Binding AmountText}" FontSize="13" Margin="16,0,0,0" VerticalAlignment="Center">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsTotal}" Value="True">
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsNegative}" Value="True">
+                                    <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="PaymentTemplate">
+            <Grid Margin="0,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding MethodText}" FontSize="13" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" />
+                <TextBlock Grid.Column="1" Text="{Binding TotalAmount, StringFormat=N2}" FontSize="13" Margin="16,0" VerticalAlignment="Center" />
+                <Border Grid.Column="2" Background="{StaticResource BackgroundBrush}" CornerRadius="6" Padding="8,2" MinWidth="52">
+                    <TextBlock Text="{Binding Percentage, StringFormat={}{0:N1}%}" FontSize="11.5" HorizontalAlignment="Right"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                </Border>
+            </Grid>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <controls:PageHeader Grid.Row="0" Title="Finance"
+                             Subtitle="Profit &amp; loss, cash flow, cash reconciliation, supplier payables and payment analysis.">
+            <controls:PageHeader.HeaderContent>
+                <StackPanel Orientation="Horizontal">
+                    <ComboBox Style="{StaticResource AppComboBox}" MinWidth="140" Margin="0,0,8,0"
+                              ItemsSource="{Binding PeriodOptions}" DisplayMemberPath="Label"
+                              SelectedItem="{Binding SelectedPeriod}" ToolTip="Reporting period" />
+                    <TextBlock Text="From" VerticalAlignment="Center" Margin="0,0,4,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBox Style="{StaticResource InputTextBox}" Width="100" Margin="0,0,8,0" Text="{Binding FromDate, UpdateSourceTrigger=PropertyChanged}" ToolTip="yyyy-MM-dd" />
+                    <TextBlock Text="To" VerticalAlignment="Center" Margin="0,0,4,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBox Style="{StaticResource InputTextBox}" Width="100" Margin="0,0,10,0" Text="{Binding ToDate, UpdateSourceTrigger=PropertyChanged}" ToolTip="yyyy-MM-dd" />
+                    <Button Content="Apply" Style="{StaticResource PrimaryButton}" MinWidth="90" Margin="0,0,8,0" Command="{Binding ApplyCommand}" />
+                    <Button Content="Refresh" Style="{StaticResource SecondaryButton}" MinWidth="100" Command="{Binding RefreshCommand}" />
+                </StackPanel>
+            </controls:PageHeader.HeaderContent>
+        </controls:PageHeader>
+
+        <TextBlock Grid.Row="1" Text="{Binding StatusMessage}" FontSize="12" Margin="2,10,0,0"
+                   Foreground="{StaticResource TextSecondaryBrush}" />
+
+        <TabControl Grid.Row="2" Margin="0,10,0,0">
+            <!-- ===================== Overview ===================== -->
+            <TabItem Header="Overview">
+                <Grid Margin="0,12,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <UniformGrid Grid.Row="0" Columns="4">
+                        <controls:StatCard Title="NET SALES (LKR)" Value="{Binding NetSales, StringFormat=N0}"
+                                           Caption="{Binding NetSalesChangeText}" Glyph="&#xE8C8;" Accent="{StaticResource PrimaryBrush}" Margin="0,0,12,0" />
+                        <controls:StatCard Title="GROSS PROFIT (LKR)" Value="{Binding GrossProfit, StringFormat=N0}"
+                                           Caption="{Binding GrossMarginText}" Glyph="&#xE9D9;" Accent="{StaticResource SuccessBrush}" Margin="0,0,12,0" />
+                        <controls:StatCard Title="OPERATING PROFIT (LKR)" Value="{Binding OperatingProfit, StringFormat=N0}"
+                                           Caption="{Binding OperatingProfitChangeText}" Glyph="&#xE8A5;" Accent="{StaticResource AccentBrush}" Margin="0,0,12,0" />
+                        <controls:StatCard Title="OPERATING EXPENSES (LKR)" Value="{Binding OperatingExpenses, StringFormat=N0}"
+                                           Caption="{Binding NetMarginText}" Glyph="&#xE8C8;" Accent="{StaticResource DangerBrush}" />
+                    </UniformGrid>
+
+                    <Border Grid.Row="1" Style="{StaticResource FlatCard}" Margin="0,14,0,0" Padding="16">
+                        <StackPanel>
+                            <TextBlock Text="Profit &amp; loss" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,6" />
+                            <ItemsControl ItemsSource="{Binding PnlLines}" ItemTemplate="{StaticResource PnlLineTemplate}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Row="2" Style="{StaticResource FlatCard}" Margin="0,14,0,0" Padding="16">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Monthly performance (net sales, gross profit, operating expenses, operating profit)"
+                                       FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8" TextWrapping="Wrap" />
+                            <DataGrid Grid.Row="1" Style="{StaticResource AppDataGrid}" ItemsSource="{Binding MonthlySeries}"
+                                      AutoGenerateColumns="False" IsReadOnly="True">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="MONTH" Binding="{Binding PeriodLabel}" Width="90" />
+                                    <DataGridTextColumn Header="NET SALES" Binding="{Binding NetSales, StringFormat=N2}" Width="*" />
+                                    <DataGridTextColumn Header="GROSS PROFIT" Binding="{Binding GrossProfit, StringFormat=N2}" Width="*" />
+                                    <DataGridTextColumn Header="OP. EXPENSES" Binding="{Binding OperatingExpenses, StringFormat=N2}" Width="*" />
+                                    <DataGridTextColumn Header="OP. PROFIT" Binding="{Binding OperatingProfit, StringFormat=N2}" Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- ===================== Cash Flow ===================== -->
+            <TabItem Header="Cash Flow">
+                <Grid Margin="0,12,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <UniformGrid Grid.Row="0" Columns="3">
+                        <controls:StatCard Title="CASH INFLOWS (LKR)" Value="{Binding CashInflows, StringFormat=N0}"
+                                           Caption="Cash sales received" Glyph="&#xE896;" Accent="{StaticResource SuccessBrush}" Margin="0,0,12,0" />
+                        <controls:StatCard Title="CASH OUTFLOWS (LKR)" Value="{Binding CashOutflows, StringFormat=N0}"
+                                           Caption="Suppliers and expenses" Glyph="&#xE898;" Accent="{StaticResource DangerBrush}" Margin="0,0,12,0" />
+                        <controls:StatCard Title="NET OPERATING CASH FLOW (LKR)" Value="{Binding OperatingCashFlow, StringFormat=N0}"
+                                           Caption="Inflows minus outflows" Glyph="&#xE8A5;" Accent="{StaticResource PrimaryBrush}" />
+                    </UniformGrid>
+
+                    <Grid Grid.Row="1" Margin="0,14,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Style="{StaticResource FlatCard}" Padding="16" Margin="0,0,8,0">
+                            <StackPanel>
+                                <TextBlock Text="Cash in" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,6" Foreground="{StaticResource SuccessBrush}" />
+                                <ItemsControl ItemsSource="{Binding CashInflowLines}" ItemTemplate="{StaticResource PnlLineTemplate}" />
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="1" Style="{StaticResource FlatCard}" Padding="16" Margin="8,0,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Cash out" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,6" Foreground="{StaticResource DangerBrush}" />
+                                <ItemsControl ItemsSource="{Binding CashOutflowLines}" ItemTemplate="{StaticResource PnlLineTemplate}" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <!-- ===================== Cash Reconciliation ===================== -->
+            <TabItem Header="Cash Reconciliation">
+                <Border Margin="0,12,0,0" Style="{StaticResource FlatCard}" Padding="14">
+                    <DataGrid Style="{StaticResource AppDataGrid}" ItemsSource="{Binding ReconciliationRows}"
+                              AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="OPENED" Binding="{Binding OpenedAt, StringFormat=yyyy-MM-dd HH:mm}" Width="140" />
+                            <DataGridTextColumn Header="STATUS" Binding="{Binding StatusText}" Width="80" />
+                            <DataGridTextColumn Header="OPENING FLOAT" Binding="{Binding OpeningFloat, StringFormat=N2}" Width="120" />
+                            <DataGridTextColumn Header="CASH IN" Binding="{Binding CashInflows, StringFormat=N2}" Width="110" />
+                            <DataGridTextColumn Header="CASH OUT" Binding="{Binding CashOutflows, StringFormat=N2}" Width="110" />
+                            <DataGridTextColumn Header="EXPECTED" Binding="{Binding ExpectedClosing, StringFormat=N2}" Width="120" />
+                            <DataGridTextColumn Header="COUNTED" Binding="{Binding ActualClosing, StringFormat=N2}" Width="120" />
+                            <DataGridTextColumn Header="VARIANCE" Binding="{Binding Variance, StringFormat=N2}" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+            </TabItem>
+
+            <!-- ===================== Payables ===================== -->
+            <TabItem Header="Supplier Payables">
+                <Grid Margin="0,12,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <UniformGrid Grid.Row="0" Columns="3">
+                        <controls:StatCard Title="OUTSTANDING PAYABLES (LKR)" Value="{Binding SupplierOutstanding, StringFormat=N0}"
+                                           Caption="{Binding SupplierCount, StringFormat={}{0} supplier(s) owing}" Glyph="&#xE8C8;" Accent="{StaticResource DangerBrush}" Margin="0,0,12,0" />
+                        <controls:StatCard Title="OVERDUE (LKR)" Value="{Binding SupplierOverdue, StringFormat=N0}"
+                                           Caption="Past due date" Glyph="&#xE823;" Accent="{StaticResource DangerBrush}" Margin="0,0,12,0" />
+                        <controls:StatCard Title="PAYABLE SUPPLIERS" Value="{Binding SupplierCount}"
+                                           Caption="With a balance" Glyph="&#xE7EE;" Accent="{StaticResource AccentBrush}" />
+                    </UniformGrid>
+
+                    <Border Grid.Row="1" Style="{StaticResource FlatCard}" Margin="0,14,0,0" Padding="14">
+                        <StackPanel>
+                            <TextBlock Text="Ageing" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8" />
+                            <ItemsControl ItemsSource="{Binding AgeingBuckets}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{StaticResource BackgroundBrush}" CornerRadius="9" Padding="12,8" Margin="0,0,10,10">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Label}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" />
+                                                <TextBlock Text="{Binding Amount, StringFormat=N2}" FontSize="14" FontWeight="SemiBold" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Row="2" Style="{StaticResource FlatCard}" Margin="0,14,0,0" Padding="14">
+                        <DataGrid Style="{StaticResource AppDataGrid}" ItemsSource="{Binding SupplierLines}"
+                                  AutoGenerateColumns="False" IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="SUPPLIER" Binding="{Binding SupplierName}" Width="1.5*" />
+                                <DataGridTextColumn Header="RECEIVED (LKR)" Binding="{Binding ReceivedValue, StringFormat=N2}" Width="130" />
+                                <DataGridTextColumn Header="PAID (LKR)" Binding="{Binding AmountPaid, StringFormat=N2}" Width="120" />
+                                <DataGridTextColumn Header="OUTSTANDING (LKR)" Binding="{Binding Outstanding, StringFormat=N2}" Width="140" />
+                                <DataGridTextColumn Header="DUE" Binding="{Binding EarliestDueDate, StringFormat=yyyy-MM-dd}" Width="100" />
+                                <DataGridTextColumn Header="OVERDUE (LKR)" Binding="{Binding OverdueAmount, StringFormat=N2}" Width="130" />
+                                <DataGridTextColumn Header="AGEING" Binding="{Binding AgeingBucket}" Width="*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- ===================== Payment Analysis ===================== -->
+            <TabItem Header="Payment Analysis">
+                <Grid Margin="0,12,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Border Grid.Row="0" Style="{StaticResource FlatCard}" Padding="14" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="Sales payment mix" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,6" />
+                            <ItemsControl ItemsSource="{Binding SalesPayments}" ItemTemplate="{StaticResource PaymentTemplate}" />
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Row="1" Style="{StaticResource FlatCard}" Padding="14" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="Supplier payment mix" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,6" />
+                            <ItemsControl ItemsSource="{Binding SupplierPayments}" ItemTemplate="{StaticResource PaymentTemplate}" />
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Row="2" Style="{StaticResource FlatCard}" Padding="14">
+                        <StackPanel>
+                            <TextBlock Text="Expense payment mix" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,6" />
+                            <ItemsControl ItemsSource="{Binding ExpensePayments}" ItemTemplate="{StaticResource PaymentTemplate}" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

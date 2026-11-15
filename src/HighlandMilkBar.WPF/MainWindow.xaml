@@ -12,6 +12,9 @@
         <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
             <views:DashboardView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AnalyticsViewModel}">
+            <views:AnalyticsView />
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:ProductsViewModel}">
             <views:ProductsView />
         </DataTemplate>
@@ -38,6 +41,12 @@
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:ExpensesViewModel}">
             <views:ExpensesView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:FinancialViewModel}">
+            <views:FinancialView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ReportCentreViewModel}">
+            <views:ReportCentreView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:PlaceholderViewModel}">
             <views:PlaceholderView />
