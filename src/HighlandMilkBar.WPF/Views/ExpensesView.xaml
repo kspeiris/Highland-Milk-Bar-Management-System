@@ -1,0 +1,93 @@
+<UserControl x:Class="HighlandMilkBar.WPF.Views.ExpensesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:HighlandMilkBar.WPF.Controls"
+             Loaded="ExpensesView_Loaded">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <controls:PageHeader Grid.Row="0" Title="Expenses" Subtitle="Record and review outlet operating expenses.">
+            <controls:PageHeader.HeaderContent>
+                <Button Content="&#xF0E7;  New expense" Style="{StaticResource PrimaryButton}" MinWidth="150" Command="{Binding NewCommand}" />
+            </controls:PageHeader.HeaderContent>
+        </controls:PageHeader>
+
+        <UniformGrid Grid.Row="1" Columns="3" Margin="0,18,0,0">
+            <controls:StatCard Title="TOTAL EXPENSES (LKR)" Value="{Binding TotalExpenses, StringFormat=N0}" Caption="All time" Glyph="&#xE8C8;" Accent="{StaticResource DangerBrush}" Margin="0,0,12,0" />
+            <controls:StatCard Title="THIS MONTH (LKR)" Value="{Binding MonthExpenses, StringFormat=N0}" Caption="{Binding ThisMonthCount, StringFormat={}{0} expense(s)}" Glyph="&#xE8A5;" Accent="{StaticResource AccentBrush}" Margin="0,0,12,0" />
+            <controls:StatCard Title="TODAY (LKR)" Value="{Binding TodayExpenses, StringFormat=N0}" Caption="Recorded today" Glyph="&#xE823;" Accent="{StaticResource PrimaryBrush}" />
+        </UniformGrid>
+        <UniformGrid Grid.Row="2" Columns="1" Margin="0,12,0,0">
+            <controls:StatCard Title="EXPENSE CATEGORIES" Value="{Binding CategoryCount}" Caption="Configured categories" Glyph="&#xE8EC;" Accent="{StaticResource SuccessBrush}" />
+        </UniformGrid>
+
+        <Border Grid.Row="3" Style="{StaticResource FlatCard}" Margin="0,16,0,0" Padding="14">
+            <StackPanel Orientation="Horizontal">
+                <Border Width="200" Margin="0,0,10,0">
+                    <controls:SearchBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+                </Border>
+                <ComboBox Style="{StaticResource AppComboBox}" MinWidth="150" Margin="0,0,10,0"
+                          ItemsSource="{Binding CategoryOptions}" DisplayMemberPath="Label" SelectedItem="{Binding SelectedCategory}" ToolTip="Filter by category" />
+                <ComboBox Style="{StaticResource AppComboBox}" MinWidth="140" Margin="0,0,10,0"
+                          ItemsSource="{Binding MethodOptions}" DisplayMemberPath="Label" SelectedItem="{Binding SelectedMethod}" ToolTip="Payment method" />
+                <ComboBox Style="{StaticResource AppComboBox}" MinWidth="130" Margin="0,0,10,0"
+                          ItemsSource="{Binding SortOptions}" DisplayMemberPath="Label" SelectedItem="{Binding SelectedSort}" ToolTip="Sort order" />
+                <TextBlock Text="From" VerticalAlignment="Center" Margin="0,0,4,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                <TextBox Style="{StaticResource InputTextBox}" Width="100" Margin="0,0,8,0" Text="{Binding FromDate, UpdateSourceTrigger=PropertyChanged}" ToolTip="yyyy-MM-dd" />
+                <TextBlock Text="To" VerticalAlignment="Center" Margin="0,0,4,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                <TextBox Style="{StaticResource InputTextBox}" Width="100" Margin="0,0,10,0" Text="{Binding ToDate, UpdateSourceTrigger=PropertyChanged}" ToolTip="yyyy-MM-dd" />
+                <Button Content="Search" Style="{StaticResource PrimaryButton}" MinWidth="90" Margin="0,0,8,0" Command="{Binding SearchCommand}" />
+                <Button Content="Clear" Style="{StaticResource OutlineButton}" MinWidth="80" Command="{Binding ClearFiltersCommand}" />
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="4" Margin="0,14,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Edit" Style="{StaticResource SecondaryButton}" MinWidth="80" Margin="0,0,8,0" Command="{Binding EditCommand}" />
+                <Button Content="View" Style="{StaticResource OutlineButton}" MinWidth="90" Margin="0,0,8,0" Command="{Binding DetailsCommand}" />
+                <Button Content="Delete" Style="{StaticResource OutlineButton}" MinWidth="90" Margin="0,0,8,0" Command="{Binding DeleteCommand}" />
+                <Button Content="Categories" Style="{StaticResource OutlineButton}" MinWidth="110" Margin="0,0,8,0" Command="{Binding CategoriesCommand}" />
+                <Button Content="Analytics" Style="{StaticResource GhostButton}" MinWidth="100" Command="{Binding AnalyticsCommand}" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Content="&#xE00E;" Style="{StaticResource IconButton}" Command="{Binding PreviousPageCommand}" ToolTip="Previous page" />
+                <TextBlock Text="{Binding PageDisplay}" VerticalAlignment="Center" Margin="8,0" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                <Button Content="&#xE010;" Style="{StaticResource IconButton}" Command="{Binding NextPageCommand}" ToolTip="Next page" />
+                <Button Content="Refresh" Style="{StaticResource GhostButton}" Margin="10,0,0,0" Command="{Binding RefreshCommand}" />
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="5" Style="{StaticResource AppCard}" Padding="0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <DataGrid Style="{StaticResource AppDataGrid}" ItemsSource="{Binding Expenses}"
+                          SelectedItem="{Binding SelectedExpense, Mode=TwoWay}" AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="DATE" Binding="{Binding ExpenseDate, StringFormat=yyyy-MM-dd}" Width="110" />
+                        <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding Description}" Width="1.8*" />
+                        <DataGridTextColumn Header="CATEGORY" Binding="{Binding CategoryName}" Width="150" />
+                        <DataGridTextColumn Header="AMOUNT (LKR)" Binding="{Binding Amount, StringFormat=N2}" Width="130" />
+                        <DataGridTextColumn Header="METHOD" Binding="{Binding PaymentMethodText}" Width="110" />
+                        <DataGridTextColumn Header="REFERENCE" Binding="{Binding ReferenceNumber}" Width="1.2*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+                <TextBlock Grid.Row="1" Text="{Binding StatusMessage}" FontSize="11.5" Margin="12,8"
+                           Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

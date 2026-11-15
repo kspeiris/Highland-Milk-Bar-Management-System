@@ -42,12 +42,13 @@ public partial class App : System.Windows.Application
             var loyaltyService = new LoyaltyService(db);
             var customerService = new CustomerService(db);
             var customerQueryService = new CustomerQueryService(db);
+            var expenseService = new ExpenseService(db);
             var salesService = new SalesService(db, inventoryService, loyaltyService);
             var mainViewModel = new MainViewModel(
                 dashboardService, productService, categoryService, inventoryService, inventoryQueryService,
                 salesService, salesService, receiptService, milkBarService, recipeService,
                 purchaseService, supplierService, supplierPaymentService,
-                customerService, customerQueryService, loyaltyService);
+                customerService, customerQueryService, loyaltyService, expenseService, expenseService);
             await mainViewModel.InitializeAsync();
 
             var mainWindow = new MainWindow { DataContext = mainViewModel };

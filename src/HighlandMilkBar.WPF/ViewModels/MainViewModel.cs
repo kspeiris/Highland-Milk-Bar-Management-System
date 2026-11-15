@@ -22,6 +22,8 @@ public sealed class MainViewModel : ObservableObject
     private readonly ICustomerService _customerService;
     private readonly ICustomerQueryService _customerQueryService;
     private readonly ILoyaltyService _loyaltyService;
+    private readonly IExpenseService _expenseService;
+    private readonly IExpenseQueryService _expenseQueryService;
     private object? _currentViewModel;
     private string _currentTitle = "Dashboard";
     private string _currentSubtitle = "Your outlet at a glance";
@@ -45,7 +47,9 @@ public sealed class MainViewModel : ObservableObject
         ISupplierPaymentService supplierPaymentService,
         ICustomerService customerService,
         ICustomerQueryService customerQueryService,
-        ILoyaltyService loyaltyService)
+        ILoyaltyService loyaltyService,
+        IExpenseService expenseService,
+        IExpenseQueryService expenseQueryService)
     {
         _dashboardService = dashboardService;
         _productService = productService;
@@ -63,6 +67,8 @@ public sealed class MainViewModel : ObservableObject
         _customerService = customerService;
         _customerQueryService = customerQueryService;
         _loyaltyService = loyaltyService;
+        _expenseService = expenseService;
+        _expenseQueryService = expenseQueryService;
 
         NavItems = new ObservableCollection<NavItemViewModel>
         {
@@ -164,6 +170,7 @@ public sealed class MainViewModel : ObservableObject
             "Purchases" => new PurchasesViewModel(_purchaseService, _supplierService, _productService, _supplierPaymentService),
             "Suppliers" => new SuppliersViewModel(_supplierService, _supplierPaymentService, _purchaseService),
             "Customers" => new CustomersViewModel(_customerService, _customerQueryService, _loyaltyService),
+            "Expenses" => new ExpensesViewModel(_expenseService, _expenseQueryService),
             _ => new PlaceholderViewModel(key, CurrentSubtitle, GetScaffoldDescription(key), GetPlannedStep(key), GetGlyph(key))
         };
 
@@ -177,6 +184,8 @@ public sealed class MainViewModel : ObservableObject
             _ = suppliers.LoadAsync();
         if (CurrentViewModel is CustomersViewModel customers)
             _ = customers.LoadAsync();
+        if (CurrentViewModel is ExpensesViewModel expenses)
+            _ = expenses.LoadAsync();
     }
 
     private static string GetPlannedStep(string key) => key switch

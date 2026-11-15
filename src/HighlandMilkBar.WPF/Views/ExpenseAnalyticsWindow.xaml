@@ -1,0 +1,61 @@
+<Window x:Class="HighlandMilkBar.WPF.Views.ExpenseAnalyticsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:HighlandMilkBar.WPF.Controls"
+        Title="Expense analytics" Width="900" Height="680" MinWidth="760" MinHeight="560"
+        WindowStartupLocation="CenterOwner" Background="{StaticResource BackgroundBrush}">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <controls:PageHeader Title="Expense Analytics" Subtitle="Monthly trend, category breakdown and a date-range report.">
+            <controls:PageHeader.HeaderContent>
+                <Button Content="Refresh" Style="{StaticResource GhostButton}" Click="Refresh_Click" />
+            </controls:PageHeader.HeaderContent>
+        </controls:PageHeader>
+
+        <Border Grid.Row="1" Style="{StaticResource FlatCard}" Margin="0,16,0,0" Padding="14">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="From" VerticalAlignment="Center" Margin="0,0,4,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                <TextBox Style="{StaticResource InputTextBox}" Width="110" Margin="0,0,10,0" Text="{Binding FromDate, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="To" VerticalAlignment="Center" Margin="0,0,4,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                <TextBox Style="{StaticResource InputTextBox}" Width="110" Margin="0,0,10,0" Text="{Binding ToDate, UpdateSourceTrigger=PropertyChanged}" />
+                <Button Content="Apply" Style="{StaticResource PrimaryButton}" MinWidth="90" Click="Apply_Click" />
+                <TextBlock Text="{Binding ReportCount, StringFormat={}{0} expense(s)}" VerticalAlignment="Center" Margin="16,0,0,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                <TextBlock Text="{Binding ReportTotal, StringFormat=Total LKR {0:N2}}" VerticalAlignment="Center" Margin="12,0,0,0" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding ReportAverage, StringFormat=Avg LKR {0:N2}}" VerticalAlignment="Center" Margin="12,0,0,0" Foreground="{StaticResource TextSecondaryBrush}" />
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="2" Margin="0,16,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="360" />
+            </Grid.ColumnDefinitions>
+
+            <GroupBox Header="Monthly trend (last 6 months)">
+                <DataGrid Style="{StaticResource AppDataGrid}" ItemsSource="{Binding MonthlyTrend}" AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="MONTH" Binding="{Binding MonthLabel}" Width="120" />
+                        <DataGridTextColumn Header="EXPENSES" Binding="{Binding ExpenseCount}" Width="100" />
+                        <DataGridTextColumn Header="TOTAL (LKR)" Binding="{Binding TotalAmount, StringFormat=N2}" Width="140" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </GroupBox>
+
+            <GroupBox Grid.Column="2" Header="Category breakdown (selected range)">
+                <DataGrid Style="{StaticResource AppDataGrid}" ItemsSource="{Binding CategoryBreakdown}" AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="CATEGORY" Binding="{Binding CategoryName}" Width="1*" />
+                        <DataGridTextColumn Header="TOTAL (LKR)" Binding="{Binding TotalAmount, StringFormat=N2}" Width="120" />
+                        <DataGridTextColumn Header="SHARE %" Binding="{Binding Percentage, StringFormat=N1}" Width="80" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </GroupBox>
+        </Grid>
+    </Grid>
+</Window>
