@@ -1,0 +1,97 @@
+<Window x:Class="HighlandMilkBar.WPF.Views.CustomerAnalyticsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:HighlandMilkBar.WPF.Controls"
+        Title="Customer analytics" Width="1040" Height="780" MinWidth="900" MinHeight="640"
+        WindowStartupLocation="CenterOwner" Background="{StaticResource BackgroundBrush}">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <controls:PageHeader Title="Customer Analytics" Subtitle="Spending, frequency, segmentation and loyalty rules.">
+            <controls:PageHeader.HeaderContent>
+                <Button Content="Refresh" Style="{StaticResource GhostButton}" Click="Refresh_Click" />
+            </controls:PageHeader.HeaderContent>
+        </controls:PageHeader>
+
+        <UniformGrid Grid.Row="1" Columns="3" Margin="0,16,0,0">
+            <controls:StatCard Title="TOTAL CUSTOMERS" Value="{Binding TotalCustomers}" Caption="Registered" Glyph="&#xE77B;" Accent="{StaticResource PrimaryBrush}" Margin="0,0,12,0" />
+            <controls:StatCard Title="ACTIVE CUSTOMERS" Value="{Binding ActiveCustomers}" Caption="Selectable at POS" Glyph="&#xE73E;" Accent="{StaticResource SuccessBrush}" Margin="0,0,12,0" />
+            <controls:StatCard Title="REPEAT CUSTOMERS" Value="{Binding RepeatCustomers}" Caption="2+ completed sales" Glyph="&#xE8CB;" Accent="{StaticResource AccentBrush}" />
+        </UniformGrid>
+
+        <Grid Grid.Row="2" Margin="0,16,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="360" />
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2*" />
+                    <RowDefinition Height="2*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <GroupBox Header="Top customers by spending (LKR)" Margin="0,0,0,10">
+                    <DataGrid Style="{StaticResource AppDataGrid}" ItemsSource="{Binding TopBySpending}" AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="CUSTOMER" Binding="{Binding Name}" Width="1.6*" />
+                            <DataGridTextColumn Header="PURCHASES" Binding="{Binding TotalPurchases}" Width="90" />
+                            <DataGridTextColumn Header="SPENDING" Binding="{Binding TotalSpending, StringFormat=N2}" Width="120" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </GroupBox>
+
+                <GroupBox Header="Top customers by purchase frequency" Grid.Row="1" Margin="0,0,0,10">
+                    <DataGrid Style="{StaticResource AppDataGrid}" ItemsSource="{Binding TopByFrequency}" AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="CUSTOMER" Binding="{Binding Name}" Width="1.6*" />
+                            <DataGridTextColumn Header="PURCHASES" Binding="{Binding TotalPurchases}" Width="90" />
+                            <DataGridTextColumn Header="SPENDING" Binding="{Binding TotalSpending, StringFormat=N2}" Width="120" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </GroupBox>
+
+                <GroupBox Header="Customers with no recent purchase (90+ days)" Grid.Row="2">
+                    <DataGrid Style="{StaticResource AppDataGrid}" ItemsSource="{Binding InactiveCustomers}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="180">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="CUSTOMER" Binding="{Binding Name}" Width="1.6*" />
+                            <DataGridTextColumn Header="PURCHASES" Binding="{Binding TotalPurchases}" Width="90" />
+                            <DataGridTextColumn Header="LAST PURCHASE" Binding="{Binding LastPurchase, StringFormat=yyyy-MM-dd}" Width="130" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </GroupBox>
+            </Grid>
+
+            <StackPanel Grid.Column="2">
+                <GroupBox Header="Segmentation" Margin="0,0,0,12">
+                    <DataGrid Style="{StaticResource AppDataGrid}" ItemsSource="{Binding SegmentCounts}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="200">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="SEGMENT" Binding="{Binding SegmentText}" Width="1*" />
+                            <DataGridTextColumn Header="CUSTOMERS" Binding="{Binding Count}" Width="90" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </GroupBox>
+
+                <GroupBox Header="Loyalty configuration">
+                    <StackPanel Margin="6">
+                        <CheckBox x:Name="EnabledCheck" Content="Loyalty enabled" IsChecked="{Binding LoyaltyEnabled}" Margin="0,0,0,10"
+                                  Foreground="{StaticResource TextPrimaryBrush}" />
+                        <TextBlock Text="POINTS PER LKR 100" Style="{StaticResource LabelText}" Margin="0,0,0,5" />
+                        <TextBox Style="{StaticResource InputTextBox}" Text="{Binding PointsPerHundred, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+                        <TextBlock Text="MINIMUM QUALIFYING AMOUNT (LKR)" Style="{StaticResource LabelText}" Margin="0,0,0,5" />
+                        <TextBox Style="{StaticResource InputTextBox}" Text="{Binding MinimumQualifying, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
+                        <Button Content="Save loyalty settings" Style="{StaticResource PrimaryButton}" Click="SaveLoyalty_Click" />
+                        <TextBlock x:Name="StatusText" Text="{Binding StatusMessage}" FontSize="11.5" Margin="0,10,0,0"
+                                   Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

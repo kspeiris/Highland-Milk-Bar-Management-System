@@ -68,9 +68,14 @@ public sealed class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
     public void Configure(EntityTypeBuilder<Supplier> b)
     {
         b.Property(x => x.Name).IsRequired().HasMaxLength(200);
+        b.Property(x => x.Code).HasMaxLength(64);
         b.Property(x => x.Phone).HasMaxLength(40);
         b.Property(x => x.Email).HasMaxLength(200);
+        b.Property(x => x.BusinessRegNo).HasMaxLength(64);
+        b.Property(x => x.TaxRegNo).HasMaxLength(64);
         b.HasIndex(x => x.Name);
+        // Supplier code is unique (case-insensitive) when provided.
+        b.HasIndex(x => x.Code).IsUnique().HasFilter("[Code] IS NOT NULL AND [Code] <> ''");
     }
 }
 
@@ -78,9 +83,22 @@ public sealed class CustomerConfiguration : IEntityTypeConfiguration<Customer>
 {
     public void Configure(EntityTypeBuilder<Customer> b)
     {
+        b.Property(x => x.CustomerCode).IsRequired().HasMaxLength(32);
         b.Property(x => x.Name).IsRequired().HasMaxLength(200);
+        b.Property(x => x.Type).HasConversion<int>();
         b.Property(x => x.Phone).HasMaxLength(40);
+        b.Property(x => x.AlternativePhone).HasMaxLength(32);
         b.Property(x => x.Email).HasMaxLength(200);
+        b.Property(x => x.City).HasMaxLength(100);
+        b.Property(x => x.Notes).HasMaxLength(500);
+
+        b.HasIndex(x => x.CustomerCode).IsUnique();
+        b.HasIndex(x => x.Type);
+        b.HasIndex(x => x.IsActive);
         b.HasIndex(x => x.Phone);
+        b.HasIndex(x => x.Name);
+
+        b.HasMany(x => x.LoyaltyTransactions).WithOne(x => x.Customer)
+            .HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Restrict);
     }
 }

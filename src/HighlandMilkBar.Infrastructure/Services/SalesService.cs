@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HighlandMilkBar.Infrastructure.Services;
 
-public sealed class SalesService(AppDbContext db, IInventoryService inventory) : ISalesService, ISalesQueryService
+public sealed class SalesService(AppDbContext db, IInventoryService inventory, ILoyaltyService loyalty) : ISalesService, ISalesQueryService
 {
     public async Task<SaleResult> CheckoutAsync(SaleCheckoutRequest request, CancellationToken cancellationToken = default)
     {
@@ -71,13 +71,25 @@ public sealed class SalesService(AppDbContext db, IInventoryService inventory) :
 
         var change = amountPaid - total;
 
+        // Optional customer association: validate it exists and is active before any write.
+        // A null/zero id keeps the sale as a walk-in transaction.
+        int? customerId = null;
+        if (request.CustomerId is { } requestedCustomer && requestedCustomer > 0)
+        {
+            var customer = await db.Customers.FirstOrDefaultAsync(c => c.Id == requestedCustomer, cancellationToken)
+                ?? throw new InvalidOperationException($"Customer {requestedCustomer} was not found and cannot be used for this sale.");
+            if (!customer.IsActive)
+                throw new InvalidOperationException($"Customer '{customer.Name}' is inactive and cannot be used for new sales.");
+            customerId = customer.Id;
+        }
+
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
 
         var sale = new Sale
         {
             ReceiptNumber = await GenerateSaleReceiptNumberAsync(cancellationToken),
             SoldAt = DateTime.Now,
-            CustomerId = request.CustomerId,
+            CustomerId = customerId,
             CashSessionId = request.CashSessionId,
             Subtotal = subtotal,
             DiscountAmount = discountTotal,
@@ -159,6 +171,10 @@ public sealed class SalesService(AppDbContext db, IInventoryService inventory) :
 
         sale.CostOfGoodsSold = costOfGoodsSold;
         await db.SaveChangesAsync(cancellationToken);
+
+        // Award loyalty points inside the same transaction so the ledger and sale commit together.
+        if (customerId is { } awardedCustomer)
+            await loyalty.AwardForSaleAsync(sale.Id, awardedCustomer, sale.TotalAmount, sale.ReceiptNumber, cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
 
@@ -253,6 +269,13 @@ public sealed class SalesService(AppDbContext db, IInventoryService inventory) :
         sale.Status = totalReturnedQty >= soldQty ? SaleStatus.Returned : SaleStatus.PartiallyReturned;
 
         await db.SaveChangesAsync(cancellationToken);
+
+        // Reverse the proportional share of earned points inside the same transaction.
+        if (sale.CustomerId is { } returnedCustomer)
+            await loyalty.ReverseForReturnAsync(
+                sale.Id, returnedCustomer, sale.TotalAmount, totalAmount,
+                sale.Status == SaleStatus.Returned, salesReturn.Id, salesReturn.ReturnNumber, cancellationToken);
+
         await transaction.CommitAsync(cancellationToken);
 
         return new SalesReturnResult

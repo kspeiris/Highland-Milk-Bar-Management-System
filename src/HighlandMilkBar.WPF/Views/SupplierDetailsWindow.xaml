@@ -1,0 +1,113 @@
+<Window x:Class="HighlandMilkBar.WPF.Views.SupplierDetailsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:HighlandMilkBar.WPF.Controls"
+        Title="Supplier details" Width="1080" Height="820" MinWidth="920" MinHeight="680"
+        WindowStartupLocation="CenterOwner" Background="{StaticResource BackgroundBrush}">
+    <Grid Margin="22">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,14">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="HeaderTitle" Text="{Binding Name}" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" />
+                <Border Margin="14,0,0,0" Padding="10,3" CornerRadius="10" Background="{StaticResource PrimaryLightBrush}" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding StatusText}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" />
+                </Border>
+            </StackPanel>
+            <TextBlock Text="{Binding Code, StringFormat='Supplier code: {0}'}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+                <UniformGrid Columns="3">
+                    <controls:StatCard Title="TOTAL PURCHASED (LKR)" Value="{Binding TotalPurchased, StringFormat=N0}" Caption="Received purchases" Glyph="⇩" Accent="{StaticResource PrimaryBrush}" Margin="0,0,12,0" />
+                    <controls:StatCard Title="TOTAL PAID (LKR)" Value="{Binding TotalPaid, StringFormat=N0}" Caption="Allocated payments" Glyph="✓" Accent="{StaticResource SuccessBrush}" Margin="0,0,12,0" />
+                    <controls:StatCard Title="OUTSTANDING (LKR)" Value="{Binding Outstanding, StringFormat=N0}" Caption="Balance due" Glyph="◷" Accent="{StaticResource DangerBrush}" />
+                </UniformGrid>
+
+                <Border Style="{StaticResource AppCard}" Padding="16" Margin="0,16,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" /><ColumnDefinition Width="14" />
+                            <ColumnDefinition Width="*" /><ColumnDefinition Width="14" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="CONTACT PERSON" Style="{StaticResource LabelText}" />
+                            <TextBlock Text="{Binding Contact}" FontSize="13" Margin="0,2,0,0" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="PHONE" Style="{StaticResource LabelText}" />
+                            <TextBlock Text="{Binding Phone}" FontSize="13" Margin="0,2,0,0" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="4">
+                            <TextBlock Text="EMAIL" Style="{StaticResource LabelText}" />
+                            <TextBlock Text="{Binding Email}" FontSize="13" Margin="0,2,0,0" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <TextBlock Text="PURCHASE HISTORY" Style="{StaticResource LabelText}" Margin="2,18,0,8" />
+                <Border Style="{StaticResource AppCard}" Padding="0">
+                    <DataGrid Style="{StaticResource AppDataGrid}" ItemsSource="{Binding Purchases}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="240">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="PURCHASE" Binding="{Binding PurchaseNumber}" Width="150" />
+                            <DataGridTextColumn Header="INVOICE" Binding="{Binding InvoiceNumber}" Width="130" />
+                            <DataGridTextColumn Header="DATE" Binding="{Binding PurchaseDate, StringFormat=yyyy-MM-dd}" Width="110" />
+                            <DataGridTextColumn Header="TOTAL" Binding="{Binding TotalAmount, StringFormat=N2}" Width="100" />
+                            <DataGridTextColumn Header="PAID" Binding="{Binding AmountPaid, StringFormat=N2}" Width="100" />
+                            <DataGridTextColumn Header="OUTSTANDING" Binding="{Binding Outstanding, StringFormat=N2}" Width="110" />
+                            <DataGridTextColumn Header="STATUS" Binding="{Binding ReceiveStatus}" Width="100" />
+                            <DataGridTextColumn Header="PAYMENT" Binding="{Binding PaymentStatus}" Width="110" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+
+                <TextBlock Text="PAYMENT HISTORY" Style="{StaticResource LabelText}" Margin="2,18,0,8" />
+                <Border Style="{StaticResource AppCard}" Padding="0">
+                    <DataGrid Style="{StaticResource AppDataGrid}" ItemsSource="{Binding Payments}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="200">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="DATE" Binding="{Binding PaidAt, StringFormat=yyyy-MM-dd}" Width="120" />
+                            <DataGridTextColumn Header="METHOD" Binding="{Binding Method}" Width="130" />
+                            <DataGridTextColumn Header="REFERENCE" Binding="{Binding Reference}" Width="*" />
+                            <DataGridTextColumn Header="AMOUNT" Binding="{Binding Amount, StringFormat=N2}" Width="120" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+
+                <TextBlock Text="SUPPLIER STATEMENT" Style="{StaticResource LabelText}" Margin="2,18,0,8" />
+                <Border Style="{StaticResource AppCard}" Padding="0">
+                    <StackPanel>
+                        <Grid Margin="16,12,16,8">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="Debit = purchase owed · Credit = payment made" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
+                            <TextBlock Grid.Column="1" FontSize="12" FontWeight="SemiBold">
+                                <Run Text="Opening " /><Run Text="{Binding OpeningBalance, StringFormat=N2}" /><Run Text="  ·  Closing " /><Run Text="{Binding ClosingBalance, StringFormat=N2}" />
+                            </TextBlock>
+                        </Grid>
+                        <DataGrid Style="{StaticResource AppDataGrid}" ItemsSource="{Binding Statement}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="260">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="DATE" Binding="{Binding Date, StringFormat=yyyy-MM-dd}" Width="110" />
+                                <DataGridTextColumn Header="REFERENCE" Binding="{Binding Reference}" Width="140" />
+                                <DataGridTextColumn Header="TYPE" Binding="{Binding Type}" Width="90" />
+                                <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding Description}" Width="*" />
+                                <DataGridTextColumn Header="DEBIT" Binding="{Binding Debit, StringFormat=N2}" Width="100" />
+                                <DataGridTextColumn Header="CREDIT" Binding="{Binding Credit, StringFormat=N2}" Width="100" />
+                                <DataGridTextColumn Header="BALANCE" Binding="{Binding RunningBalance, StringFormat=N2}" Width="110" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="{Binding Error}" Foreground="{StaticResource DangerBrush}" FontSize="12" TextWrapping="Wrap" Margin="2,12,0,0"
+                           Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <Button Grid.Row="1" Content="Close" Style="{StaticResource OutlineButton}" MinWidth="90"
+                HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="Close_Click" />
+    </Grid>
+</Window>

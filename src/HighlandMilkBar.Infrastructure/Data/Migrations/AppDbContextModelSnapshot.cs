@@ -190,7 +190,23 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("AlternativePhone")
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CustomerCode")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DateOfBirth")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
@@ -205,15 +221,87 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Phone")
                         .HasMaxLength(40)
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CustomerCode")
+                        .IsUnique();
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("Name");
 
                     b.HasIndex("Phone");
 
+                    b.HasIndex("Type");
+
                     b.ToTable("Customers");
+                });
+
+            modelBuilder.Entity("HighlandMilkBar.Domain.Entities.LoyaltyTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BalanceAfter")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Reference")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("SaleId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("SalesReturnId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("SaleId")
+                        .IsUnique()
+                        .HasFilter("[SaleId] IS NOT NULL AND [Type] = 0");
+
+                    b.HasIndex("SalesReturnId");
+
+                    b.HasIndex(new[] { "CustomerId", "TransactionDate" });
+
+                    b.ToTable("LoyaltyTransactions");
                 });
 
             modelBuilder.Entity("HighlandMilkBar.Domain.Entities.Expense", b =>
@@ -491,6 +579,10 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<decimal>("AdditionalCharges")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
                     b.Property<decimal>("AmountPaid")
                         .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
@@ -502,6 +594,9 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("DueDate")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("InvoiceNumber")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -511,10 +606,21 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("PaymentStatus")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("PurchaseDate")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("PurchaseNumber")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime?>("ReceivedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ReceivedDate")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Status")
@@ -535,7 +641,12 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
 
                     b.HasIndex("InvoiceNumber");
 
-                    b.HasIndex("SupplierId");
+                    b.HasIndex("PurchaseNumber")
+                        .IsUnique();
+
+                    b.HasIndex("SupplierId", "InvoiceNumber")
+                        .IsUnique()
+                        .HasFilter("[InvoiceNumber] IS NOT NULL AND [InvoiceNumber] <> ''");
 
                     b.ToTable("Purchases");
                 });
@@ -548,6 +659,10 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
 
                     b.Property<string>("BatchNumber")
                         .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("ExpiryDate")
@@ -572,6 +687,10 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
 
                     b.Property<decimal>("ReceivedQuantity")
                         .HasPrecision(18, 3)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Unit")
+                        .HasMaxLength(32)
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("UnitCost")
@@ -1053,6 +1172,14 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("BusinessRegNo")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("ContactPerson")
                         .HasColumnType("TEXT");
 
@@ -1078,7 +1205,18 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("TaxRegNo")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasFilter("[Code] IS NOT NULL AND [Code] <> ''");
 
                     b.HasIndex("Name");
 
@@ -1396,6 +1534,31 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
                     b.Navigation("SalesReturn");
                 });
 
+            modelBuilder.Entity("HighlandMilkBar.Domain.Entities.LoyaltyTransaction", b =>
+                {
+                    b.HasOne("HighlandMilkBar.Domain.Entities.Customer", "Customer")
+                        .WithMany("LoyaltyTransactions")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HighlandMilkBar.Domain.Entities.Sale", "Sale")
+                        .WithMany()
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HighlandMilkBar.Domain.Entities.SalesReturn", "SalesReturn")
+                        .WithMany()
+                        .HasForeignKey("SalesReturnId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Sale");
+
+                    b.Navigation("SalesReturn");
+                });
+
             modelBuilder.Entity("HighlandMilkBar.Domain.Entities.StockAdjustmentItem", b =>
                 {
                     b.HasOne("HighlandMilkBar.Domain.Entities.InventoryBatch", "InventoryBatch")
@@ -1496,6 +1659,11 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
             modelBuilder.Entity("HighlandMilkBar.Domain.Entities.Category", b =>
                 {
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("HighlandMilkBar.Domain.Entities.Customer", b =>
+                {
+                    b.Navigation("LoyaltyTransactions");
                 });
 
             modelBuilder.Entity("HighlandMilkBar.Domain.Entities.Product", b =>
