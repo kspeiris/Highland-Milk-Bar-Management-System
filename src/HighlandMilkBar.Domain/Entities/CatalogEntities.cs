@@ -33,7 +33,10 @@ public class Product
     public decimal SellingPrice { get; set; }
     public decimal CurrentStock { get; set; }
     public decimal ReorderLevel { get; set; }
-    public bool TrackInventory { get; set; } = true;
+    public bool TrackInventory { get; set; }
+
+    /// <summary>When true, received batches must carry an expiry date and are subject to expiry rules.</summary>
+    public bool RequiresExpiryDate { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime? UpdatedAt { get; set; }

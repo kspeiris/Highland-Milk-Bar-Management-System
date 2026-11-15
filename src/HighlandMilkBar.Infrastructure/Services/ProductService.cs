@@ -74,6 +74,7 @@ public sealed class ProductService(AppDbContext db) : IProductService
                 CurrentStock = p.CurrentStock,
                 ReorderLevel = p.ReorderLevel,
                 TrackInventory = p.TrackInventory,
+                RequiresExpiryDate = p.RequiresExpiryDate,
                 IsActive = p.IsActive
             })
             .ToListAsync(cancellationToken);
@@ -144,6 +145,7 @@ public sealed class ProductService(AppDbContext db) : IProductService
             CurrentStock = p.CurrentStock,
             ReorderLevel = p.ReorderLevel,
             TrackInventory = p.TrackInventory,
+            RequiresExpiryDate = p.RequiresExpiryDate,
             IsActive = p.IsActive,
             CreatedAt = p.CreatedAt,
             UpdatedAt = p.UpdatedAt
@@ -188,6 +190,7 @@ public sealed class ProductService(AppDbContext db) : IProductService
             CurrentStock = request.TrackInventory ? request.OpeningStock : 0m,
             ReorderLevel = request.ReorderLevel,
             TrackInventory = request.TrackInventory,
+            RequiresExpiryDate = request.RequiresExpiryDate,
             IsActive = request.IsActive,
             CreatedAt = DateTime.Now
         };
@@ -233,6 +236,7 @@ public sealed class ProductService(AppDbContext db) : IProductService
         product.SellingPrice = request.SellingPrice;
         product.ReorderLevel = request.ReorderLevel;
         product.TrackInventory = request.TrackInventory;
+        product.RequiresExpiryDate = request.RequiresExpiryDate;
         product.IsActive = request.IsActive;
         product.UpdatedAt = DateTime.Now;
 
@@ -290,6 +294,7 @@ public sealed class ProductService(AppDbContext db) : IProductService
                 CurrentStock = dto.CurrentStock,
                 ReorderLevel = dto.ReorderLevel,
                 TrackInventory = dto.TrackInventory,
+                RequiresExpiryDate = dto.RequiresExpiryDate,
                 IsActive = dto.IsActive
             };
     }

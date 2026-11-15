@@ -17,22 +17,40 @@ public sealed class InventoryService(AppDbContext db) : IInventoryService
             throw new ArgumentException("Unit cost cannot be negative.", nameof(request));
 
         var product = await GetProductAsync(request.ProductId, cancellationToken);
+        if (!product.IsActive)
+            throw new InvalidOperationException($"Product '{product.Name}' is inactive and cannot receive stock.");
+        if (!product.TrackInventory)
+            throw new InvalidOperationException($"Product '{product.Name}' is not inventory-tracked and cannot receive stock.");
+
+        var receivedAt = request.ReceivedDate ?? DateTime.Now;
+        var batchNumber = string.IsNullOrWhiteSpace(request.BatchNumber)
+            ? $"B{DateTime.Now:yyyyMMddHHmmssfff}"
+            : request.BatchNumber.Trim();
+
+        if (await db.InventoryBatches.AnyAsync(
+            b => b.ProductId == product.Id && b.BatchNumber.ToLower() == batchNumber.ToLower(), cancellationToken))
+            throw new InvalidOperationException($"Batch '{batchNumber}' already exists for this product.");
+
+        if (product.RequiresExpiryDate && request.ExpiryDate is null)
+            throw new ArgumentException($"An expiry date is required for '{product.Name}'.", nameof(request));
+        if (request.ExpiryDate is not null && request.ExpiryDate.Value.Date < receivedAt.Date)
+            throw new ArgumentException("Expiry date cannot be earlier than the received date.", nameof(request));
 
         var isPurchase = request.PurchaseItemId.HasValue;
+        var (movementType, referenceType) = ResolveReceipt(request, isPurchase);
+
         var batch = new InventoryBatch
         {
             ProductId = product.Id,
             SupplierId = request.SupplierId,
             PurchaseItemId = request.PurchaseItemId,
-            BatchNumber = string.IsNullOrWhiteSpace(request.BatchNumber)
-                ? $"B{DateTime.Now:yyyyMMddHHmmssfff}"
-                : request.BatchNumber.Trim(),
+            BatchNumber = batchNumber,
             ManufacturedDate = request.ManufacturedDate,
             ExpiryDate = request.ExpiryDate,
             QuantityReceived = request.Quantity,
             QuantityRemaining = request.Quantity,
             UnitCost = request.UnitCost,
-            ReceivedAt = DateTime.Now,
+            ReceivedAt = receivedAt,
             IsActive = true,
             Notes = request.Note
         };
@@ -41,22 +59,35 @@ public sealed class InventoryService(AppDbContext db) : IInventoryService
         product.CurrentStock += request.Quantity;
         product.UpdatedAt = DateTime.Now;
 
-        var movement = new StockMovement
+        db.StockMovements.Add(new StockMovement
         {
             ProductId = product.Id,
             InventoryBatch = batch,
-            MovementType = isPurchase ? StockMovementType.Purchase : StockMovementType.Opening,
+            MovementType = movementType,
             QuantityChange = request.Quantity,
             UnitCostSnapshot = request.UnitCost,
             BalanceAfter = batch.QuantityRemaining,
-            ReferenceType = isPurchase ? MovementReferenceType.Purchase : MovementReferenceType.Opening,
+            ReferenceType = referenceType,
             ReferenceId = request.PurchaseItemId,
-            Note = request.Note
-        };
-        db.StockMovements.Add(movement);
+            Note = string.IsNullOrWhiteSpace(request.ReferenceNumber) ? request.Note : $"{request.Note} ({request.ReferenceNumber})".Trim()
+        });
 
         await db.SaveChangesAsync(cancellationToken);
         return batch;
+    }
+
+    private static (StockMovementType MovementType, MovementReferenceType ReferenceType) ResolveReceipt(
+        StockReceiptRequest request, bool isPurchase)
+    {
+        if (isPurchase)
+            return (StockMovementType.Purchase, MovementReferenceType.Purchase);
+
+        return request.Reason switch
+        {
+            StockReceiptReason.OpeningStock => (StockMovementType.Opening, MovementReferenceType.Opening),
+            StockReceiptReason.PositiveCorrection => (StockMovementType.AdjustmentIn, MovementReferenceType.Adjustment),
+            _ => (StockMovementType.Opening, MovementReferenceType.Manual)
+        };
     }
 
     public async Task<AllocationResult> AllocateAsync(
@@ -210,7 +241,14 @@ public sealed class InventoryService(AppDbContext db) : IInventoryService
                 throw new ArgumentException("Adjustment quantity cannot be zero.", nameof(request));
 
             var product = await GetProductAsync(line.ProductId, cancellationToken);
-            var movementType = line.QuantityChange > 0 ? StockMovementType.AdjustmentIn : StockMovementType.AdjustmentOut;
+            if (line.Kind is StockAdjustmentKind.Damaged or StockAdjustmentKind.Expired && line.QuantityChange > 0)
+                throw new ArgumentException("Damaged or expired write-offs must reduce stock (use a negative quantity).", nameof(request));
+            var movementType = line.Kind switch
+            {
+                StockAdjustmentKind.Damaged => StockMovementType.Waste,
+                StockAdjustmentKind.Expired => StockMovementType.Expired,
+                _ => line.QuantityChange > 0 ? StockMovementType.AdjustmentIn : StockMovementType.AdjustmentOut
+            };
             var unitCost = line.UnitCost;
 
             InventoryBatch? batch = null;

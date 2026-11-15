@@ -66,6 +66,7 @@ public partial class ProductEditorWindow : Window
         PriceInput.Text = editing.SellingPrice.ToString("0.##", CultureInfo.CurrentCulture);
         ReorderInput.Text = editing.ReorderLevel.ToString("0.##", CultureInfo.CurrentCulture);
         TrackInventoryInput.IsChecked = editing.TrackInventory;
+        RequiresExpiryInput.IsChecked = editing.RequiresExpiryDate;
         IsActiveInput.IsChecked = editing.IsActive;
 
         if (CategoryInput.Items.Cast<CategoryDto>().FirstOrDefault(c => c.Id == editing.CategoryId) is { } cat)
@@ -122,6 +123,7 @@ public partial class ProductEditorWindow : Window
         if (!TryReadDecimal(ReorderInput.Text, out var reorder) || reorder < 0) { ShowError("Enter a valid reorder level (zero or more)."); return; }
 
         var track = TrackInventoryInput.IsChecked == true;
+        var requiresExpiry = track && RequiresExpiryInput.IsChecked == true;
         var unitName = (UnitInput.SelectedItem as UnitDto)?.Name ?? string.Empty;
         var unitId = (UnitInput.SelectedItem as UnitDto)?.Id;
         if (track && string.IsNullOrWhiteSpace(unitName)) { ShowError("Select a unit for an inventory-tracked product."); return; }
@@ -142,6 +144,7 @@ public partial class ProductEditorWindow : Window
                 OpeningStock = 0m,
                 ReorderLevel = reorder,
                 TrackInventory = track,
+                RequiresExpiryDate = requiresExpiry,
                 IsActive = IsActiveInput.IsChecked == true
             };
         }
@@ -160,6 +163,7 @@ public partial class ProductEditorWindow : Window
                 SellingPrice = price,
                 ReorderLevel = reorder,
                 TrackInventory = track,
+                RequiresExpiryDate = requiresExpiry,
                 IsActive = IsActiveInput.IsChecked == true
             };
         }

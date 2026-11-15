@@ -28,6 +28,7 @@ public sealed class ProductDto
     public decimal CurrentStock { get; init; }
     public decimal ReorderLevel { get; init; }
     public bool TrackInventory { get; init; }
+    public bool RequiresExpiryDate { get; init; }
     public bool IsActive { get; init; }
 
     public string StatusText => IsActive ? "Active" : "Inactive";
@@ -51,6 +52,7 @@ public sealed class ProductDetailDto
     public decimal CurrentStock { get; init; }
     public decimal ReorderLevel { get; init; }
     public bool TrackInventory { get; init; }
+    public bool RequiresExpiryDate { get; init; }
     public bool IsActive { get; init; }
     public DateTime CreatedAt { get; init; }
     public DateTime? UpdatedAt { get; init; }
@@ -105,7 +107,8 @@ public sealed record CreateProductRequest
     public decimal SellingPrice { get; init; }
     public decimal OpeningStock { get; init; }
     public decimal ReorderLevel { get; init; }
-    public bool TrackInventory { get; init; } = true;
+    public bool TrackInventory { get; init; }
+    public bool RequiresExpiryDate { get; init; }
     public bool IsActive { get; init; } = true;
 }
 
@@ -123,5 +126,6 @@ public sealed record UpdateProductRequest
     public decimal SellingPrice { get; init; }
     public decimal ReorderLevel { get; init; }
     public bool TrackInventory { get; init; }
+    public bool RequiresExpiryDate { get; init; }
     public bool IsActive { get; init; } = true;
 }
