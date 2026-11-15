@@ -332,12 +332,12 @@ public sealed class BackupRestoreTests : IAsyncLifetime
 
         clock.Set(DateTime.Today.AddHours(22).AddMinutes(30));
         Assert.True(await scheduler.TickAsync()); // due -> one backup
-        Assert.Equal(1, Directory.GetFiles(_folder, "*.db").Length);
+        Assert.Single(Directory.GetFiles(_folder, "*.db"));
         Assert.NotNull((await _backup.GetSettingsAsync()).LastSuccessUtc);
 
         clock.Set(DateTime.Today.AddHours(23));
         Assert.False(await scheduler.TickAsync()); // same period -> no duplicate
-        Assert.Equal(1, Directory.GetFiles(_folder, "*.db").Length);
+        Assert.Single(Directory.GetFiles(_folder, "*.db"));
 
         clock.Set(DateTime.Today.AddDays(1).AddHours(22).AddMinutes(30));
         Assert.True(await scheduler.TickAsync()); // next day -> runs
@@ -382,7 +382,7 @@ public sealed class BackupRestoreTests : IAsyncLifetime
         var scheduler = new BackupSchedulerService(_backup, _backup, clock);
 
         Assert.True(await scheduler.TickAsync());
-        Assert.Equal(1, Directory.GetFiles(_folder, "*.db").Length);
+        Assert.Single(Directory.GetFiles(_folder, "*.db"));
         Assert.NotNull((await _backup.GetSettingsAsync()).LastSuccessUtc);
     }
 
