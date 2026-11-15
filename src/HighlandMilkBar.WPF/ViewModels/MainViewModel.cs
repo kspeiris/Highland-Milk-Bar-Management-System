@@ -16,6 +16,9 @@ public sealed class MainViewModel : ObservableObject
     private readonly IReceiptService _receiptService;
     private readonly IMilkBarService _milkBarService;
     private readonly IRecipeService _recipeService;
+    private readonly IPurchaseService _purchaseService;
+    private readonly ISupplierService _supplierService;
+    private readonly ISupplierPaymentService _supplierPaymentService;
     private object? _currentViewModel;
     private string _currentTitle = "Dashboard";
     private string _currentSubtitle = "Your outlet at a glance";
@@ -33,7 +36,10 @@ public sealed class MainViewModel : ObservableObject
         ISalesQueryService salesQueryService,
         IReceiptService receiptService,
         IMilkBarService milkBarService,
-        IRecipeService recipeService)
+        IRecipeService recipeService,
+        IPurchaseService purchaseService,
+        ISupplierService supplierService,
+        ISupplierPaymentService supplierPaymentService)
     {
         _dashboardService = dashboardService;
         _productService = productService;
@@ -45,6 +51,9 @@ public sealed class MainViewModel : ObservableObject
         _receiptService = receiptService;
         _milkBarService = milkBarService;
         _recipeService = recipeService;
+        _purchaseService = purchaseService;
+        _supplierService = supplierService;
+        _supplierPaymentService = supplierPaymentService;
 
         NavItems = new ObservableCollection<NavItemViewModel>
         {
@@ -143,6 +152,8 @@ public sealed class MainViewModel : ObservableObject
             "Products" => new ProductsViewModel(_productService, _categoryService),
             "Inventory" => new InventoryViewModel(_inventoryQueryService, _inventoryService, _productService),
             "Milk Bar" => new MilkBarViewModel(_milkBarService, _recipeService, _productService),
+            "Purchases" => new PurchasesViewModel(_purchaseService, _supplierService, _productService, _supplierPaymentService),
+            "Suppliers" => new SuppliersViewModel(_supplierService, _supplierPaymentService, _purchaseService),
             _ => new PlaceholderViewModel(key, CurrentSubtitle, GetScaffoldDescription(key), GetPlannedStep(key), GetGlyph(key))
         };
 
@@ -150,6 +161,10 @@ public sealed class MainViewModel : ObservableObject
             _ = dashboard.LoadAsync();
         if (CurrentViewModel is ProductsViewModel products)
             _ = products.LoadAsync();
+        if (CurrentViewModel is PurchasesViewModel purchases)
+            _ = purchases.LoadAsync();
+        if (CurrentViewModel is SuppliersViewModel suppliers)
+            _ = suppliers.LoadAsync();
     }
 
     private static string GetPlannedStep(string key) => key switch
