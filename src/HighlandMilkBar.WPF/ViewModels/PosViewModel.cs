@@ -45,6 +45,7 @@ public sealed class PosViewModel : ObservableObject
     private readonly IProductService _products;
     private readonly IInventoryQueryService _inventory;
     private readonly ISalesService _sales;
+    private readonly ISalesQueryService _salesQuery;
     private readonly IReceiptService _receipts;
 
     private readonly Dictionary<int, decimal> _sellable = new();
@@ -59,12 +60,15 @@ public sealed class PosViewModel : ObservableObject
     private bool _isError;
     private string _statusMessage = "Ready.";
     private string _lastReceiptNumber = string.Empty;
+    private string _customerSearchText = string.Empty;
+    private CustomerOptionDto? _selectedCustomer;
 
-    public PosViewModel(IProductService products, IInventoryQueryService inventory, ISalesService sales, IReceiptService receipts)
+    public PosViewModel(IProductService products, IInventoryQueryService inventory, ISalesService sales, ISalesQueryService salesQuery, IReceiptService receipts)
     {
         _products = products;
         _inventory = inventory;
         _sales = sales;
+        _salesQuery = salesQuery;
         _receipts = receipts;
 
         AddCommand = new RelayCommand(p => AddToCart(p as ProductDto), p => p is ProductDto);
@@ -76,12 +80,16 @@ public sealed class PosViewModel : ObservableObject
 
         SearchCommand = new RelayCommand(_ => ApplyFilters());
         CategoryChangedCommand = new RelayCommand(_ => ApplyFilters());
+        SearchCustomersCommand = new RelayCommand(_ => _ = SearchCustomersAsync());
+        SelectCustomerCommand = new RelayCommand(p => SelectCustomer(p as CustomerOptionDto));
+        RemoveCustomerCommand = new RelayCommand(_ => RemoveCustomer());
     }
 
     public ObservableCollection<ProductDto> Products { get; } = new();
     public ObservableCollection<ProductDto> FilteredProducts { get; } = new();
     public ObservableCollection<CategoryDto> Categories { get; } = new();
     public ObservableCollection<CartLine> Cart { get; } = new();
+    public ObservableCollection<CustomerOptionDto> CustomerResults { get; } = new();
 
     public Array PaymentMethods => Enum.GetValues<PosPaymentMethod>();
 
@@ -93,6 +101,9 @@ public sealed class PosViewModel : ObservableObject
     public RelayCommand CheckoutCommand { get; }
     public RelayCommand SearchCommand { get; }
     public RelayCommand CategoryChangedCommand { get; }
+    public RelayCommand SearchCustomersCommand { get; }
+    public RelayCommand SelectCustomerCommand { get; }
+    public RelayCommand RemoveCustomerCommand { get; }
 
     /// <summary>Raised after a successful checkout so the view can open the receipt.</summary>
     public event Action<int>? SaleCompleted;
@@ -101,6 +112,33 @@ public sealed class PosViewModel : ObservableObject
     public CategoryDto? SelectedCategory { get => _selectedCategory; set { if (SetProperty(ref _selectedCategory, value)) ApplyFilters(); } }
     public CartLine? SelectedLine { get => _selectedLine; set => SetProperty(ref _selectedLine, value); }
     public string OrderDiscountText { get => _orderDiscountText; set { if (SetProperty(ref _orderDiscountText, value)) Recalculate(); } }
+
+    // ---- Optional customer selection (walk-in when none is selected) ----
+    public string CustomerSearchText
+    {
+        get => _customerSearchText;
+        set { if (SetProperty(ref _customerSearchText, value)) { } }
+    }
+
+    public CustomerOptionDto? SelectedCustomer
+    {
+        get => _selectedCustomer;
+        set
+        {
+            if (SetProperty(ref _selectedCustomer, value))
+            {
+                OnPropertyChanged(nameof(HasCustomer));
+                OnPropertyChanged(nameof(CustomerDisplayName));
+                OnPropertyChanged(nameof(CustomerDisplayPhone));
+                OnPropertyChanged(nameof(CustomerStatusText));
+            }
+        }
+    }
+
+    public bool HasCustomer => _selectedCustomer is not null;
+    public string CustomerDisplayName => _selectedCustomer?.Name ?? "Walk-in Customer";
+    public string CustomerDisplayPhone => _selectedCustomer?.Phone ?? string.Empty;
+    public string CustomerStatusText => _selectedCustomer is null ? "Walk-in" : "Customer selected";
 
     public PosPaymentMethod SelectedPaymentMethod
     {
@@ -232,6 +270,29 @@ public sealed class PosViewModel : ObservableObject
 
     public int FilterCount => FilteredProducts.Count;
 
+    private async Task SearchCustomersAsync()
+    {
+        var results = await _salesQuery.SearchCustomersAsync(string.IsNullOrWhiteSpace(CustomerSearchText) ? null : CustomerSearchText.Trim());
+        CustomerResults.Clear();
+        foreach (var c in results) CustomerResults.Add(c);
+    }
+
+    private void SelectCustomer(CustomerOptionDto? customer)
+    {
+        if (customer is null) return;
+        SelectedCustomer = customer;
+        CustomerSearchText = string.Empty;
+        CustomerResults.Clear();
+        ClearError();
+    }
+
+    private void RemoveCustomer()
+    {
+        SelectedCustomer = null;
+        CustomerSearchText = string.Empty;
+        CustomerResults.Clear();
+    }
+
     private decimal AvailableFor(ProductDto p) => p.TrackInventory && _sellable.TryGetValue(p.Id, out var qty) ? qty : decimal.MaxValue;
 
     private void AddToCart(ProductDto? product)
@@ -337,6 +398,7 @@ public sealed class PosViewModel : ObservableObject
 
         var request = new SaleCheckoutRequest
         {
+            CustomerId = SelectedCustomer?.Id,
             Items = items,
             OrderDiscount = OrderDiscount,
             Payments = payments,
@@ -364,6 +426,7 @@ public sealed class PosViewModel : ObservableObject
             CashReceivedText = string.Empty;
             CardAmountText = string.Empty;
             OrderDiscountText = string.Empty;
+            RemoveCustomer();
             RefreshTotals();
 
             ShowSuccess($"Sale {result.ReceiptNumber} completed. Change: {result.Change:0.00}.");

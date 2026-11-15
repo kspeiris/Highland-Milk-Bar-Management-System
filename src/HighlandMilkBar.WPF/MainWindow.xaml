@@ -33,6 +33,9 @@
         <DataTemplate DataType="{x:Type vm:SuppliersViewModel}">
             <views:SuppliersView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:CustomersViewModel}">
+            <views:CustomersView />
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:PlaceholderViewModel}">
             <views:PlaceholderView />
         </DataTemplate>
