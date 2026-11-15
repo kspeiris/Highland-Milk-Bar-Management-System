@@ -86,6 +86,9 @@
                         </Grid>
                         <CheckBox x:Name="TrackInventoryInput" Content="Track this product in inventory"
                                   IsChecked="True" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,2,0,10" />
+                        <CheckBox x:Name="RequiresExpiryInput" Content="Requires an expiry date when receiving stock"
+                                  IsChecked="False" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,10"
+                                  ToolTip="Only relevant for inventory-tracked products." />
                         <CheckBox x:Name="IsActiveInput" Content="Active (available for sale)"
                                   IsChecked="True" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" />
                     </StackPanel>
