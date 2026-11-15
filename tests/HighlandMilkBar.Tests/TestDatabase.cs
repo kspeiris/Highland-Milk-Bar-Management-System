@@ -94,4 +94,89 @@ public sealed class TestDatabase : IAsyncLifetime
         Db.InventoryBatches.Add(batch);
         return batch;
     }
+
+    /// <summary>Adds an inventory-tracked ingredient product measured in the given unit symbol.</summary>
+    public async Task<Product> AddIngredientAsync(
+        string sku,
+        string name,
+        string unit,
+        decimal cost,
+        int categoryId,
+        decimal stock = 0m,
+        bool active = true)
+    {
+        var product = new Product
+        {
+            Sku = sku,
+            Name = name,
+            CategoryId = categoryId,
+            Type = ProductType.Ingredient,
+            Unit = unit,
+            CostPrice = cost,
+            SellingPrice = 0m,
+            CurrentStock = stock,
+            TrackInventory = true,
+            IsActive = active
+        };
+        Db.Products.Add(product);
+        await Db.SaveChangesAsync();
+        return product;
+    }
+
+    /// <summary>Adds a prepared menu product (optionally with a selling price and active flag).</summary>
+    public async Task<Product> AddMenuItemAsync(
+        string sku,
+        string name,
+        int categoryId,
+        decimal sellingPrice,
+        bool active = true)
+    {
+        var product = new Product
+        {
+            Sku = sku,
+            Name = name,
+            CategoryId = categoryId,
+            Type = ProductType.PreparedItem,
+            Unit = "Glass",
+            SellingPrice = sellingPrice,
+            CurrentStock = 0m,
+            TrackInventory = false,
+            IsActive = active
+        };
+        Db.Products.Add(product);
+        await Db.SaveChangesAsync();
+        return product;
+    }
+
+    /// <summary>Adds a recipe with the given ingredient lines (ingredientId, quantity, unit).</summary>
+    public async Task<Recipe> AddRecipeAsync(
+        string name,
+        int menuProductId,
+        decimal yield,
+        string yieldUnit,
+        bool active,
+        params (int IngredientId, decimal Quantity, string Unit)[] items)
+    {
+        var recipe = new Recipe
+        {
+            Name = name,
+            MenuProductId = menuProductId,
+            YieldQuantity = yield,
+            YieldUnit = yieldUnit,
+            IsActive = active,
+            Version = 1
+        };
+        var order = 0;
+        foreach (var item in items)
+            recipe.Items.Add(new RecipeItem
+            {
+                IngredientProductId = item.IngredientId,
+                QuantityRequired = item.Quantity,
+                Unit = item.Unit,
+                SortOrder = order++
+            });
+        Db.Recipes.Add(recipe);
+        await Db.SaveChangesAsync();
+        return recipe;
+    }
 }
