@@ -45,6 +45,9 @@
         <DataTemplate DataType="{x:Type vm:FinancialViewModel}">
             <views:FinancialView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ReportCentreViewModel}">
+            <views:ReportCentreView />
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:PlaceholderViewModel}">
             <views:PlaceholderView />
         </DataTemplate>

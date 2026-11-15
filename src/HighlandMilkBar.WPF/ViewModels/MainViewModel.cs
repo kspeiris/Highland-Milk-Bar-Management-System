@@ -25,6 +25,9 @@ public sealed class MainViewModel : ObservableObject
     private readonly IExpenseService _expenseService;
     private readonly IExpenseQueryService _expenseQueryService;
     private readonly IFinancialQueryService _financialQueryService;
+    private readonly IReportCatalogService _reportCatalog;
+    private readonly IReportQueryService _reportQuery;
+    private readonly IReportExportService _reportExport;
     private object? _currentViewModel;
     private string _currentTitle = "Dashboard";
     private string _currentSubtitle = "Your outlet at a glance";
@@ -51,7 +54,10 @@ public sealed class MainViewModel : ObservableObject
         ILoyaltyService loyaltyService,
         IExpenseService expenseService,
         IExpenseQueryService expenseQueryService,
-        IFinancialQueryService financialQueryService)
+        IFinancialQueryService financialQueryService,
+        IReportCatalogService reportCatalog,
+        IReportQueryService reportQuery,
+        IReportExportService reportExport)
     {
         _analytics = analytics;
         _productService = productService;
@@ -72,6 +78,9 @@ public sealed class MainViewModel : ObservableObject
         _expenseService = expenseService;
         _expenseQueryService = expenseQueryService;
         _financialQueryService = financialQueryService;
+        _reportCatalog = reportCatalog;
+        _reportQuery = reportQuery;
+        _reportExport = reportExport;
 
         NavItems = new ObservableCollection<NavItemViewModel>
         {
@@ -178,6 +187,7 @@ public sealed class MainViewModel : ObservableObject
             "Customers" => new CustomersViewModel(_customerService, _customerQueryService, _loyaltyService),
             "Expenses" => new ExpensesViewModel(_expenseService, _expenseQueryService),
             "Finance" => new FinancialViewModel(_financialQueryService),
+            "Reports" => new ReportCentreViewModel(_reportCatalog, _reportQuery, _reportExport),
             _ => new PlaceholderViewModel(key, CurrentSubtitle, GetScaffoldDescription(key), GetPlannedStep(key), GetGlyph(key))
         };
 
