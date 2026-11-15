@@ -256,4 +256,17 @@ public sealed class TestDatabase : IAsyncLifetime
         Db.SaveChanges();
         return sale;
     }
+
+    /// <summary>Adds a cash session directly for expense/cash integration setup.</summary>
+    public CashSession AddCashSession(bool open = true)
+    {
+        var session = new CashSession
+        {
+            Status = open ? CashSessionStatus.Open : CashSessionStatus.Closed,
+            OpeningFloat = 0m
+        };
+        Db.CashSessions.Add(session);
+        Db.SaveChanges();
+        return session;
+    }
 }
