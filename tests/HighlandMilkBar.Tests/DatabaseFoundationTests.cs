@@ -142,6 +142,7 @@ public sealed class DatabaseFoundationTests : IAsyncLifetime
 
         var purchase = new Purchase
         {
+            PurchaseNumber = "PUR-00000001",
             InvoiceNumber = "INV-1001",
             SupplierId = supplier.Id,
             PurchaseDate = DateTime.Today,
@@ -150,7 +151,7 @@ public sealed class DatabaseFoundationTests : IAsyncLifetime
             AmountPaid = 50m,
             Status = PurchaseStatus.Draft
         };
-        purchase.Items.Add(new PurchaseItem { ProductId = product.Id, Quantity = 10m, UnitCost = 5m, LineTotal = 50m });
+        purchase.Items.Add(new PurchaseItem { ProductId = product.Id, Quantity = 10m, UnitCost = 5m, LineTotal = 50m, BatchNumber = "FM-B1" });
         Db.Purchases.Add(purchase);
         await Db.SaveChangesAsync();
 

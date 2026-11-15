@@ -179,4 +179,25 @@ public sealed class TestDatabase : IAsyncLifetime
         await Db.SaveChangesAsync();
         return recipe;
     }
+
+    /// <summary>Adds a supplier directly (bypassing validation) for scenario setup.</summary>
+    public async Task<Supplier> AddSupplierAsync(
+        string name,
+        string? code = null,
+        bool active = true,
+        string? phone = null,
+        string? email = null)
+    {
+        var supplier = new Supplier
+        {
+            Name = name,
+            Code = code,
+            IsActive = active,
+            Phone = phone,
+            Email = email
+        };
+        Db.Suppliers.Add(supplier);
+        await Db.SaveChangesAsync();
+        return supplier;
+    }
 }
