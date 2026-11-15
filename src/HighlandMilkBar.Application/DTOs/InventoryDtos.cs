@@ -24,6 +24,15 @@ public sealed class StockReceiptRequest
     public int? SupplierId { get; init; }
     public int? PurchaseItemId { get; init; }
     public string? Note { get; init; }
+
+    /// <summary>When set, overrides the recorded received date (defaults to now).</summary>
+    public DateTime? ReceivedDate { get; init; }
+
+    /// <summary>Business reason for the receipt. When omitted it is derived from PurchaseItemId.</summary>
+    public StockReceiptReason Reason { get; init; } = StockReceiptReason.ManualReceipt;
+
+    /// <summary>Optional external reference (e.g. GRN or invoice number).</summary>
+    public string? ReferenceNumber { get; init; }
 }
 
 public sealed class StockAdjustmentLine
@@ -33,6 +42,7 @@ public sealed class StockAdjustmentLine
     public decimal QuantityChange { get; init; }
     public decimal UnitCost { get; init; }
     public string? Note { get; init; }
+    public StockAdjustmentKind Kind { get; init; } = StockAdjustmentKind.Correction;
 }
 
 /// <summary>A manual stock correction applied atomically across one or more products.</summary>
