@@ -8,13 +8,19 @@ public sealed class PurchaseConfiguration : IEntityTypeConfiguration<Purchase>
 {
     public void Configure(EntityTypeBuilder<Purchase> b)
     {
+        b.Property(x => x.PurchaseNumber).IsRequired().HasMaxLength(64);
         b.Property(x => x.InvoiceNumber).IsRequired().HasMaxLength(64);
         b.Property(x => x.Subtotal).HasPrecision(18, 2);
         b.Property(x => x.DiscountAmount).HasPrecision(18, 2);
+        b.Property(x => x.AdditionalCharges).HasPrecision(18, 2);
         b.Property(x => x.TotalAmount).HasPrecision(18, 2);
         b.Property(x => x.AmountPaid).HasPrecision(18, 2);
         b.Property(x => x.Notes).HasMaxLength(500);
+        b.HasIndex(x => x.PurchaseNumber).IsUnique();
         b.HasIndex(x => x.InvoiceNumber);
+        // A supplier invoice number must be unique per supplier (when supplied).
+        b.HasIndex(x => new { x.SupplierId, x.InvoiceNumber }).IsUnique()
+            .HasFilter("[InvoiceNumber] IS NOT NULL AND [InvoiceNumber] <> ''");
 
         b.HasOne(x => x.Supplier).WithMany()
             .HasForeignKey(x => x.SupplierId).OnDelete(DeleteBehavior.SetNull);
@@ -31,8 +37,10 @@ public sealed class PurchaseItemConfiguration : IEntityTypeConfiguration<Purchas
     {
         b.Property(x => x.Quantity).HasPrecision(18, 3);
         b.Property(x => x.UnitCost).HasPrecision(18, 4);
+        b.Property(x => x.DiscountAmount).HasPrecision(18, 2);
         b.Property(x => x.LineTotal).HasPrecision(18, 2);
         b.Property(x => x.ReceivedQuantity).HasPrecision(18, 3);
+        b.Property(x => x.Unit).HasMaxLength(32);
         b.Property(x => x.BatchNumber).HasMaxLength(64);
 
         b.HasOne(x => x.Product).WithMany()

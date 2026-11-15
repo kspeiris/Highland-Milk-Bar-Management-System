@@ -5,6 +5,7 @@ public enum PaymentMethod
     Cash,
     Card,
     BankTransfer,
+    Cheque,
     Other
 }
 
@@ -36,6 +37,18 @@ public enum PurchaseStatus
     PartiallyPaid,
     Paid,
     Cancelled
+}
+
+/// <summary>
+/// The settlement state of a purchase, derived from allocated payments against the
+/// received grand total. Kept separate from <see cref="PurchaseStatus"/> (the goods
+/// receiving lifecycle) so receiving and payment never get mixed (PUR rule set).
+/// </summary>
+public enum PaymentStatus
+{
+    Unpaid,
+    PartiallyPaid,
+    Paid
 }
 
 public enum StockAdjustmentStatus

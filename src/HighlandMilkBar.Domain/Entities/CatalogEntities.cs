@@ -79,13 +79,25 @@ public class Supplier
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
+
+    /// <summary>Optional internal supplier code. Unique (case-insensitive) when provided.</summary>
+    public string? Code { get; set; }
+
     public string? ContactPerson { get; set; }
     public string? Phone { get; set; }
     public string? Email { get; set; }
     public string? Address { get; set; }
+
+    /// <summary>Optional business registration number.</summary>
+    public string? BusinessRegNo { get; set; }
+
+    /// <summary>Optional tax registration number.</summary>
+    public string? TaxRegNo { get; set; }
+
     public string? Notes { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime? UpdatedAt { get; set; }
 }
 
 public class Customer

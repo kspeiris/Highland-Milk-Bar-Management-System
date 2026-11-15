@@ -68,9 +68,14 @@ public sealed class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
     public void Configure(EntityTypeBuilder<Supplier> b)
     {
         b.Property(x => x.Name).IsRequired().HasMaxLength(200);
+        b.Property(x => x.Code).HasMaxLength(64);
         b.Property(x => x.Phone).HasMaxLength(40);
         b.Property(x => x.Email).HasMaxLength(200);
+        b.Property(x => x.BusinessRegNo).HasMaxLength(64);
+        b.Property(x => x.TaxRegNo).HasMaxLength(64);
         b.HasIndex(x => x.Name);
+        // Supplier code is unique (case-insensitive) when provided.
+        b.HasIndex(x => x.Code).IsUnique().HasFilter("[Code] IS NOT NULL AND [Code] <> ''");
     }
 }
 

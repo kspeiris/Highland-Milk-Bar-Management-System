@@ -491,6 +491,10 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<decimal>("AdditionalCharges")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
                     b.Property<decimal>("AmountPaid")
                         .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
@@ -502,6 +506,9 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("DueDate")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("InvoiceNumber")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -511,10 +518,21 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("PaymentStatus")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("PurchaseDate")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("PurchaseNumber")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime?>("ReceivedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ReceivedDate")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Status")
@@ -535,7 +553,12 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
 
                     b.HasIndex("InvoiceNumber");
 
-                    b.HasIndex("SupplierId");
+                    b.HasIndex("PurchaseNumber")
+                        .IsUnique();
+
+                    b.HasIndex("SupplierId", "InvoiceNumber")
+                        .IsUnique()
+                        .HasFilter("[InvoiceNumber] IS NOT NULL AND [InvoiceNumber] <> ''");
 
                     b.ToTable("Purchases");
                 });
@@ -548,6 +571,10 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
 
                     b.Property<string>("BatchNumber")
                         .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("ExpiryDate")
@@ -572,6 +599,10 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
 
                     b.Property<decimal>("ReceivedQuantity")
                         .HasPrecision(18, 3)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Unit")
+                        .HasMaxLength(32)
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("UnitCost")
@@ -1053,6 +1084,14 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("BusinessRegNo")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("ContactPerson")
                         .HasColumnType("TEXT");
 
@@ -1078,7 +1117,18 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("TaxRegNo")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasFilter("[Code] IS NOT NULL AND [Code] <> ''");
 
                     b.HasIndex("Name");
 
