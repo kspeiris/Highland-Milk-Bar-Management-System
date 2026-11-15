@@ -30,7 +30,6 @@ public partial class App : System.Windows.Application
 
             var productService = new ProductService(db);
             var categoryService = new CategoryService(db);
-            var dashboardService = new DashboardService(db);
             var inventoryService = new InventoryService(db);
             var inventoryQueryService = new InventoryQueryService(db);
             var receiptService = new ReceiptService(db);
@@ -45,8 +44,10 @@ public partial class App : System.Windows.Application
             var expenseService = new ExpenseService(db);
             var financialQueryService = new FinancialQueryService(db);
             var salesService = new SalesService(db, inventoryService, loyaltyService);
+            var businessAnalytics = new BusinessAnalyticsQueryService(
+                db, financialQueryService, inventoryQueryService, customerQueryService, milkBarService, purchaseService, expenseService);
             var mainViewModel = new MainViewModel(
-                dashboardService, productService, categoryService, inventoryService, inventoryQueryService,
+                businessAnalytics, productService, categoryService, inventoryService, inventoryQueryService,
                 salesService, salesService, receiptService, milkBarService, recipeService,
                 purchaseService, supplierService, supplierPaymentService,
                 customerService, customerQueryService, loyaltyService, expenseService, expenseService,

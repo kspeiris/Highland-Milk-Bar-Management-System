@@ -6,7 +6,7 @@ namespace HighlandMilkBar.WPF.ViewModels;
 
 public sealed class MainViewModel : ObservableObject
 {
-    private readonly IDashboardService _dashboardService;
+    private readonly IBusinessAnalyticsQueryService _analytics;
     private readonly IProductService _productService;
     private readonly ICategoryService _categoryService;
     private readonly IInventoryService _inventoryService;
@@ -33,7 +33,7 @@ public sealed class MainViewModel : ObservableObject
     private double _sidebarWidth = 248;
 
     public MainViewModel(
-        IDashboardService dashboardService,
+        IBusinessAnalyticsQueryService analytics,
         IProductService productService,
         ICategoryService categoryService,
         IInventoryService inventoryService,
@@ -53,7 +53,7 @@ public sealed class MainViewModel : ObservableObject
         IExpenseQueryService expenseQueryService,
         IFinancialQueryService financialQueryService)
     {
-        _dashboardService = dashboardService;
+        _analytics = analytics;
         _productService = productService;
         _categoryService = categoryService;
         _inventoryService = inventoryService;
@@ -76,6 +76,7 @@ public sealed class MainViewModel : ObservableObject
         NavItems = new ObservableCollection<NavItemViewModel>
         {
             new("Dashboard", "⌂", "Dashboard"),
+            new("Analytics", "◔", "Analytics"),
             new("Point of Sale", "▣", "Point of Sale"),
             new("Sales History", "☰", "Sales History"),
             new("Products", "▤", "Products"),
@@ -147,6 +148,7 @@ public sealed class MainViewModel : ObservableObject
         CurrentSubtitle = key switch
         {
             "Dashboard" => "Your outlet at a glance",
+            "Analytics" => "Business-wide performance insights",
             "Point of Sale" => "Fast checkout and billing workspace",
             "Sales History" => "Past transactions, receipts and returns",
             "Products" => "Manage your product catalogue and prices",
@@ -164,7 +166,8 @@ public sealed class MainViewModel : ObservableObject
 
         CurrentViewModel = key switch
         {
-            "Dashboard" => new DashboardViewModel(_dashboardService, NavigateTo),
+            "Dashboard" => new DashboardViewModel(_analytics, NavigateTo),
+            "Analytics" => new AnalyticsViewModel(_analytics),
             "Point of Sale" => new PosViewModel(_productService, _inventoryQueryService, _salesService, _salesQueryService, _receiptService),
             "Sales History" => new SalesHistoryViewModel(_salesQueryService, _salesService, _receiptService),
             "Products" => new ProductsViewModel(_productService, _categoryService),
@@ -180,6 +183,8 @@ public sealed class MainViewModel : ObservableObject
 
         if (CurrentViewModel is DashboardViewModel dashboard)
             _ = dashboard.LoadAsync();
+        if (CurrentViewModel is AnalyticsViewModel analytics)
+            _ = analytics.LoadAsync();
         if (CurrentViewModel is ProductsViewModel products)
             _ = products.LoadAsync();
         if (CurrentViewModel is PurchasesViewModel purchases)
