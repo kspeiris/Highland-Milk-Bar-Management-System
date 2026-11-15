@@ -130,3 +130,23 @@ public enum StockAdjustmentKind
     /// <summary>Expired stock write-off (always reduces stock).</summary>
     Expired
 }
+
+/// <summary>Whether a customer is a private individual or an organisation.</summary>
+public enum CustomerType
+{
+    Individual,
+    Business
+}
+
+/// <summary>The kind of change recorded in the loyalty ledger.</summary>
+public enum LoyaltyTransactionType
+{
+    /// <summary>Points awarded for a qualifying completed sale.</summary>
+    Earned,
+    /// <summary>Points reversed because a sale was returned or refunded.</summary>
+    Reversed,
+    /// <summary>Points redeemed (reserved for a future phase).</summary>
+    Redeemed,
+    /// <summary>Manual adjustment by an operator.</summary>
+    Adjustment
+}
