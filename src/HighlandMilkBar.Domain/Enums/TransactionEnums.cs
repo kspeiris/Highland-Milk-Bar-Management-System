@@ -53,7 +53,15 @@ public enum SalesReturnStatus
 
 public enum ReturnCondition
 {
+    /// <summary>Sellable / unopened — may re-enter sellable stock.</summary>
     Restock,
+    /// <summary>Damaged goods — never re-enters sellable stock.</summary>
+    Damaged,
+    /// <summary>Expired goods — never re-enters sellable stock.</summary>
+    Expired,
+    /// <summary>Not suitable for resale (opened, contaminated, etc.).</summary>
+    NotForResale,
+    /// <summary>Generic discard kept for backwards compatibility; never restocked.</summary>
     Discard
 }
 
@@ -89,4 +97,23 @@ public enum MovementReferenceType
     Adjustment,
     Recipe,
     Manual
+}
+
+/// <summary>Why stock is being received into a batch.</summary>
+public enum StockReceiptReason
+{
+    OpeningStock,
+    ManualReceipt,
+    PositiveCorrection
+}
+
+/// <summary>The nature of a manual stock adjustment, which determines the ledger movement type.</summary>
+public enum StockAdjustmentKind
+{
+    /// <summary>Sign-driven correction (positive adds, negative removes).</summary>
+    Correction,
+    /// <summary>Damaged stock write-off (always reduces stock).</summary>
+    Damaged,
+    /// <summary>Expired stock write-off (always reduces stock).</summary>
+    Expired
 }
