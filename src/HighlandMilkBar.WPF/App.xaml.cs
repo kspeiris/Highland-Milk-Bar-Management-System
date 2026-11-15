@@ -2,6 +2,7 @@ using System.IO;
 using System.Windows;
 using HighlandMilkBar.Infrastructure.Data;
 using HighlandMilkBar.Infrastructure.Services;
+using HighlandMilkBar.Infrastructure.Services.Backup;
 using HighlandMilkBar.Infrastructure.Services.Reports;
 using HighlandMilkBar.WPF.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,7 @@ namespace HighlandMilkBar.WPF;
 
 public partial class App : System.Windows.Application
 {
+    private BackupSchedulerService? _backupScheduler;
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -51,17 +53,21 @@ public partial class App : System.Windows.Application
             var reportQuery = new ReportQueryService(
                 db, businessAnalytics, financialQueryService, inventoryQueryService, customerQueryService, purchaseService, expenseService, milkBarService);
             var reportExport = new ReportExportService();
+            var backupService = new BackupService(db);
             var mainViewModel = new MainViewModel(
                 businessAnalytics, productService, categoryService, inventoryService, inventoryQueryService,
                 salesService, salesService, receiptService, milkBarService, recipeService,
                 purchaseService, supplierService, supplierPaymentService,
                 customerService, customerQueryService, loyaltyService, expenseService, expenseService,
-                financialQueryService, reportCatalog, reportQuery, reportExport);
+                financialQueryService, reportCatalog, reportQuery, reportExport, backupService, backupService);
             await mainViewModel.InitializeAsync();
 
             var mainWindow = new MainWindow { DataContext = mainViewModel };
             MainWindow = mainWindow;
             mainWindow.Show();
+
+            _backupScheduler = new BackupSchedulerService(backupService, backupService);
+            _backupScheduler.Start();
         }
         catch (Exception ex)
         {
@@ -81,5 +87,16 @@ public partial class App : System.Windows.Application
                 MessageBoxImage.Error);
             Shutdown(-1);
         }
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        if (_backupScheduler is not null)
+        {
+            try { _backupScheduler.DisposeAsync().AsTask().GetAwaiter().GetResult(); }
+            catch { }
+        }
+
+        base.OnExit(e);
     }
 }

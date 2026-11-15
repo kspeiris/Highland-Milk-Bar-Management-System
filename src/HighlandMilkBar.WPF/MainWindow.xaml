@@ -48,6 +48,10 @@
         <DataTemplate DataType="{x:Type vm:ReportCentreViewModel}">
             <views:ReportCentreView />
         </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:BackupRestoreViewModel}">
+            <views:BackupRestoreView />
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:PlaceholderViewModel}">
             <views:PlaceholderView />
         </DataTemplate>

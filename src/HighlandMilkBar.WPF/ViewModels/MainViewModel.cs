@@ -28,6 +28,8 @@ public sealed class MainViewModel : ObservableObject
     private readonly IReportCatalogService _reportCatalog;
     private readonly IReportQueryService _reportQuery;
     private readonly IReportExportService _reportExport;
+    private readonly IBackupService _backup;
+    private readonly IBackupQueryService _backupQuery;
     private object? _currentViewModel;
     private string _currentTitle = "Dashboard";
     private string _currentSubtitle = "Your outlet at a glance";
@@ -57,7 +59,9 @@ public sealed class MainViewModel : ObservableObject
         IFinancialQueryService financialQueryService,
         IReportCatalogService reportCatalog,
         IReportQueryService reportQuery,
-        IReportExportService reportExport)
+        IReportExportService reportExport,
+        IBackupService backup,
+        IBackupQueryService backupQuery)
     {
         _analytics = analytics;
         _productService = productService;
@@ -81,6 +85,8 @@ public sealed class MainViewModel : ObservableObject
         _reportCatalog = reportCatalog;
         _reportQuery = reportQuery;
         _reportExport = reportExport;
+        _backup = backup;
+        _backupQuery = backupQuery;
 
         NavItems = new ObservableCollection<NavItemViewModel>
         {
@@ -97,6 +103,7 @@ public sealed class MainViewModel : ObservableObject
             new("Expenses", "◈", "Expenses"),
             new("Finance", "＄", "Finance"),
             new("Reports", "▧", "Reports"),
+            new("Backup", "⛁", "Backup"),
             new("Settings", "⚙", "Settings")
         };
 
@@ -169,6 +176,7 @@ public sealed class MainViewModel : ObservableObject
             "Expenses" => "Record and review outlet expenses",
             "Finance" => "Revenue, costs and profitability",
             "Reports" => "Business reports and performance insights",
+            "Backup" => "Back up and restore your business data",
             "Settings" => "Application preferences and data protection",
             _ => "Outlet management"
         };
@@ -188,6 +196,7 @@ public sealed class MainViewModel : ObservableObject
             "Expenses" => new ExpensesViewModel(_expenseService, _expenseQueryService),
             "Finance" => new FinancialViewModel(_financialQueryService),
             "Reports" => new ReportCentreViewModel(_reportCatalog, _reportQuery, _reportExport),
+            "Backup" => new BackupRestoreViewModel(_backup, _backupQuery),
             _ => new PlaceholderViewModel(key, CurrentSubtitle, GetScaffoldDescription(key), GetPlannedStep(key), GetGlyph(key))
         };
 
@@ -207,6 +216,8 @@ public sealed class MainViewModel : ObservableObject
             _ = expenses.LoadAsync();
         if (CurrentViewModel is FinancialViewModel financial)
             _ = financial.LoadAsync();
+        if (CurrentViewModel is BackupRestoreViewModel backup)
+            _ = backup.LoadAsync();
     }
 
     private static string GetPlannedStep(string key) => key switch
@@ -220,7 +231,8 @@ public sealed class MainViewModel : ObservableObject
         "Expenses" => "Step 10",
         "Finance" => "Step 11",
         "Reports" => "Step 13",
-        "Settings" => "Step 14",
+        "Backup" => "Step 14",
+        "Settings" => "Later phase",
         _ => "Later phase"
     };
 
@@ -235,6 +247,7 @@ public sealed class MainViewModel : ObservableObject
         "Expenses" => "◈",
         "Finance" => "＄",
         "Reports" => "▧",
+        "Backup" => "⛁",
         "Settings" => "⚙",
         _ => "✦"
     };
@@ -250,6 +263,7 @@ public sealed class MainViewModel : ObservableObject
         "Expenses" => "This workspace will record operating expenses such as utilities, transport, packaging, maintenance and other costs.",
         "Finance" => "This workspace will present revenue, cost of goods sold, gross profit, operating expenses, net profit and cash-flow summaries. Revenue is never treated as profit.",
         "Reports" => "This workspace will produce daily and monthly sales, product, inventory, expiry, purchase, expense and profit-and-loss reports with PDF and Excel export.",
+        "Backup" => "This workspace creates, verifies and restores database backups using SQLite's online backup API, with integrity and SHA-256 verification, automatic scheduling, retention and safe restore.",
         "Settings" => "This workspace will contain outlet details, receipt settings, database location, backup and restore tools, and application preferences.",
         _ => "This workspace is included in the application plan and will be implemented in a later phase."
     };
