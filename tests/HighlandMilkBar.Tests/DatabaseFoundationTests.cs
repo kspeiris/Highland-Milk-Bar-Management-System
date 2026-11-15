@@ -192,7 +192,7 @@ public sealed class DatabaseFoundationTests : IAsyncLifetime
         Db.Recipes.Add(recipe);
         await Db.SaveChangesAsync();
 
-        var sales = new SalesService(Db, inventory);
+        var sales = new SalesService(Db, inventory, new LoyaltyService(Db));
         var result = await sales.CheckoutAsync(new SaleCheckoutRequest
         {
             Items = new List<SaleLineRequest>
@@ -219,7 +219,7 @@ public sealed class DatabaseFoundationTests : IAsyncLifetime
         _db.AddBatch(product.Id, "B1", 10m, 40m, DateTime.Today.AddDays(-1), null);
         await Db.SaveChangesAsync();
 
-        var sales = new SalesService(Db, new InventoryService(Db));
+        var sales = new SalesService(Db, new InventoryService(Db), new LoyaltyService(Db));
         var result = await sales.CheckoutAsync(new SaleCheckoutRequest
         {
             Items = new List<SaleLineRequest>
@@ -248,7 +248,7 @@ public sealed class DatabaseFoundationTests : IAsyncLifetime
         _db.AddBatch(product.Id, "B1", 10m, 40m, DateTime.Today.AddDays(-1), null);
         await Db.SaveChangesAsync();
 
-        var sales = new SalesService(Db, new InventoryService(Db));
+        var sales = new SalesService(Db, new InventoryService(Db), new LoyaltyService(Db));
         await Assert.ThrowsAsync<InvalidOperationException>(() => sales.CheckoutAsync(new SaleCheckoutRequest
         {
             Items = new List<SaleLineRequest>
@@ -273,7 +273,7 @@ public sealed class DatabaseFoundationTests : IAsyncLifetime
         _db.AddBatch(product.Id, "B1", 5m, 40m, DateTime.Today.AddDays(-1), null);
         await Db.SaveChangesAsync();
 
-        var sales = new SalesService(Db, new InventoryService(Db));
+        var sales = new SalesService(Db, new InventoryService(Db), new LoyaltyService(Db));
         await Assert.ThrowsAsync<InvalidOperationException>(() => sales.CheckoutAsync(new SaleCheckoutRequest
         {
             Items = new List<SaleLineRequest>
@@ -300,7 +300,7 @@ public sealed class DatabaseFoundationTests : IAsyncLifetime
         _db.AddBatch(product.Id, "B1", 10m, 40m, DateTime.Today.AddDays(-1), null);
         await Db.SaveChangesAsync();
 
-        var sales = new SalesService(Db, new InventoryService(Db));
+        var sales = new SalesService(Db, new InventoryService(Db), new LoyaltyService(Db));
         var sale = await sales.CheckoutAsync(new SaleCheckoutRequest
         {
             Items = new List<SaleLineRequest>

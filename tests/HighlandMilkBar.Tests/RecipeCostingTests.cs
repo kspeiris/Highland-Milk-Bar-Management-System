@@ -13,7 +13,7 @@ public sealed class RecipeCostingTests : IAsyncLifetime
     private AppDbContext Db => _db.Db;
     private RecipeService Recipes => new(Db);
     private InventoryService Inventory => new(Db);
-    private SalesService Sales => new(Db, Inventory);
+    private SalesService Sales => new(Db, Inventory, new LoyaltyService(Db));
 
     public Task InitializeAsync() => _db.InitializeAsync();
     public Task DisposeAsync() => _db.DisposeAsync();

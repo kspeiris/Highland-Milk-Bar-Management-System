@@ -200,4 +200,60 @@ public sealed class TestDatabase : IAsyncLifetime
         await Db.SaveChangesAsync();
         return supplier;
     }
+
+    /// <summary>Adds a customer directly (bypassing validation) for scenario setup.</summary>
+    public async Task<Customer> AddCustomerAsync(
+        string name,
+        string? phone = null,
+        CustomerType type = CustomerType.Individual,
+        bool active = true,
+        string? email = null,
+        DateTime? createdAt = null,
+        string? code = null)
+    {
+        var count = await Db.Customers.CountAsync();
+        var customer = new Customer
+        {
+            Name = name,
+            CustomerCode = code ?? $"CUS-{count + 1:D8}",
+            Phone = phone,
+            Email = email,
+            Type = type,
+            IsActive = active,
+            CreatedAt = createdAt ?? DateTime.Now
+        };
+        Db.Customers.Add(customer);
+        await Db.SaveChangesAsync();
+        return customer;
+    }
+
+    /// <summary>Adds a completed sale directly (single line) for customer-history/analytics setup.</summary>
+    public Sale AddSale(
+        int? customerId,
+        decimal total,
+        SaleStatus status = SaleStatus.Completed,
+        DateTime? soldAt = null,
+        string? receiptNumber = null)
+    {
+        var sale = new Sale
+        {
+            ReceiptNumber = receiptNumber ?? $"RCP-{Guid.NewGuid():N}"[..12],
+            CustomerId = customerId,
+            Subtotal = total,
+            TotalAmount = total,
+            AmountPaid = total,
+            Status = status,
+            SoldAt = soldAt ?? DateTime.Now
+        };
+        sale.Items.Add(new SaleItem
+        {
+            ItemNameSnapshot = "Item",
+            Quantity = 1,
+            UnitPrice = total,
+            LineTotal = total
+        });
+        Db.Sales.Add(sale);
+        Db.SaveChanges();
+        return sale;
+    }
 }

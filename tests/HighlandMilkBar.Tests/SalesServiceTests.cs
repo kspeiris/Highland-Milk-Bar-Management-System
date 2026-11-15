@@ -12,7 +12,7 @@ public sealed class SalesServiceTests : IAsyncLifetime
     private readonly TestDatabase _db = new();
     private AppDbContext Db => _db.Db;
     private InventoryService Inventory => new(Db);
-    private SalesService Sales => new(Db, Inventory);
+    private SalesService Sales => new(Db, Inventory, new LoyaltyService(Db));
 
     public Task InitializeAsync() => _db.InitializeAsync();
     public Task DisposeAsync() => _db.DisposeAsync();
