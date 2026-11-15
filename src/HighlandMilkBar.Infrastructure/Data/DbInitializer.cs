@@ -191,9 +191,13 @@ public static class DbInitializer
         var defaults = new (string Key, string Value)[]
         {
             ("outlet.name", "Highland Milk Bar"),
+            ("outlet.address", ""),
+            ("outlet.phone", ""),
             ("currency.code", "LKR"),
             ("inventory.allow_negative_stock", "false"),
-            ("inventory.allocation_policy", "FEFO")
+            ("inventory.allocation_policy", "FEFO"),
+            ("receipt.width_mm", "80"),
+            ("receipt.footer", "Thank you for your purchase!")
         };
 
         var changed = false;

@@ -416,6 +416,9 @@ namespace HighlandMilkBar.Infrastructure.Data.Migrations
                         .HasPrecision(18, 3)
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("RequiresExpiryDate")
+                        .HasColumnType("INTEGER");
+
                     b.Property<decimal>("SellingPrice")
                         .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
