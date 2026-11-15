@@ -12,10 +12,10 @@ public partial class StatusBadge : UserControl
         DependencyProperty.Register(nameof(Text), typeof(string), typeof(StatusBadge), new PropertyMetadata(string.Empty));
     public static readonly DependencyProperty BadgeBackgroundProperty =
         DependencyProperty.Register(nameof(BadgeBackground), typeof(Brush), typeof(StatusBadge),
-            new PropertyMetadata(new SolidColorBrush(Color.FromRgb(0xEA, 0xF3, 0xFB))));
+            new PropertyMetadata(new SolidColorBrush(Color.FromRgb(0xE8, 0xF4, 0xEF))));
     public static readonly DependencyProperty BadgeForegroundProperty =
         DependencyProperty.Register(nameof(BadgeForeground), typeof(Brush), typeof(StatusBadge),
-            new PropertyMetadata(new SolidColorBrush(Color.FromRgb(0x14, 0x5D, 0xA0))));
+            new PropertyMetadata(new SolidColorBrush(Color.FromRgb(0x17, 0x6B, 0x55))));
 
     public string Text { get => (string)GetValue(TextProperty); set => SetValue(TextProperty, value); }
     public Brush BadgeBackground { get => (Brush)GetValue(BadgeBackgroundProperty); set => SetValue(BadgeBackgroundProperty, value); }

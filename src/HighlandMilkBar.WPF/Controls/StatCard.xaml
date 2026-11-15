@@ -28,7 +28,9 @@
             <TextBlock Grid.Row="1"
                        Text="{Binding Value, ElementName=Root}"
                        Style="{StaticResource KpiValueText}"
-                       Margin="0,14,0,2" />
+                       Margin="0,14,0,2"
+                       TextTrimming="CharacterEllipsis"
+                       ToolTip="{Binding Value, ElementName=Root}" />
 
             <StackPanel Grid.Row="2" Orientation="Horizontal">
                 <Border Style="{StaticResource StatusBadgeWarning}"

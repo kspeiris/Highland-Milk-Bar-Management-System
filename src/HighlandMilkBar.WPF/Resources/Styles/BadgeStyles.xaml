@@ -10,15 +10,15 @@
     </Style>
 
     <Style x:Key="StatusBadgeSuccess" TargetType="Border" BasedOn="{StaticResource StatusBadgeBase}">
-        <Setter Property="Background" Value="#E4F5EC" />
+        <Setter Property="Background" Value="{StaticResource SuccessSurfaceBrush}" />
     </Style>
 
     <Style x:Key="StatusBadgeWarning" TargetType="Border" BasedOn="{StaticResource StatusBadgeBase}">
-        <Setter Property="Background" Value="#FDF3E1" />
+        <Setter Property="Background" Value="{StaticResource WarningSurfaceBrush}" />
     </Style>
 
     <Style x:Key="StatusBadgeDanger" TargetType="Border" BasedOn="{StaticResource StatusBadgeBase}">
-        <Setter Property="Background" Value="#FBE7E7" />
+        <Setter Property="Background" Value="{StaticResource DangerSurfaceBrush}" />
     </Style>
 
     <Style x:Key="StatusBadgeInfo" TargetType="Border" BasedOn="{StaticResource StatusBadgeBase}">

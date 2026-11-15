@@ -32,7 +32,7 @@
                     <Button Content="Generate" Style="{StaticResource PrimaryButton}" MinWidth="110" Command="{Binding GenerateCommand}" />
                 </StackPanel>
                 <TextBlock Text="{Binding StatusMessage}" FontSize="12" Margin="0,10,0,0" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
-                <Border Margin="0,8,0,0" Padding="10,6" CornerRadius="8" Background="{StaticResource DangerBrush}"
+                <Border Margin="0,8,0,0" Padding="12,9" CornerRadius="9" Background="{StaticResource DangerBrush}"
                         Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}">
                     <TextBlock Text="{Binding Error}" Foreground="White" TextWrapping="Wrap" FontSize="12" />
                 </Border>

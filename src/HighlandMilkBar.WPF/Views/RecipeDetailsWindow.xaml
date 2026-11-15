@@ -67,12 +67,12 @@
                                         <controls:StatusBadge Text="{Binding StatusText}">
                                             <controls:StatusBadge.Style>
                                                 <Style TargetType="controls:StatusBadge">
-                                                    <Setter Property="BadgeBackground" Value="#E4F5EC" />
-                                                    <Setter Property="BadgeForeground" Value="#1E7E45" />
+                                                    <Setter Property="BadgeBackground" Value="{StaticResource SuccessSurfaceBrush}" />
+                                                    <Setter Property="BadgeForeground" Value="{StaticResource SuccessBadgeTextBrush}" />
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsAvailable}" Value="False">
-                                                            <Setter Property="BadgeBackground" Value="#FBE7E7" />
-                                                            <Setter Property="BadgeForeground" Value="#B02A2A" />
+                                                            <Setter Property="BadgeBackground" Value="{StaticResource DangerSurfaceBrush}" />
+                                                            <Setter Property="BadgeForeground" Value="{StaticResource DangerBadgeTextBrush}" />
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>

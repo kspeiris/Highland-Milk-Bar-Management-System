@@ -85,7 +85,7 @@
 
         <StackPanel Grid.Row="5" Margin="0,10,0,0">
             <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="{StaticResource SuccessBrush}" TextWrapping="Wrap" />
-            <Border Margin="0,6,0,0" Padding="10,6" CornerRadius="8" Background="{StaticResource DangerBrush}"
+            <Border Margin="0,8,0,0" Padding="12,9" CornerRadius="9" Background="{StaticResource DangerBrush}"
                     Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}">
                 <TextBlock Text="{Binding Error}" Foreground="White" TextWrapping="Wrap" FontSize="12" />
             </Border>

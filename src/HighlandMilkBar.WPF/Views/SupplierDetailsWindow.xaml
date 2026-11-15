@@ -12,7 +12,7 @@
 
         <StackPanel Grid.Row="0" Margin="0,0,0,14">
             <StackPanel Orientation="Horizontal">
-                <TextBlock x:Name="HeaderTitle" Text="{Binding Name}" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" />
+                <TextBlock x:Name="HeaderTitle" Text="{Binding Name}" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 <Border Margin="14,0,0,0" Padding="10,3" CornerRadius="10" Background="{StaticResource PrimaryLightBrush}" VerticalAlignment="Center">
                     <TextBlock Text="{Binding StatusText}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" />
                 </Border>

@@ -22,7 +22,7 @@
                 <controls:SearchBox Text="" IsEnabled="False" />
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                     <Border Style="{StaticResource StatusBadgeWarning}">
-                        <TextBlock Text="{Binding Status}" FontSize="9" FontWeight="Bold" Foreground="#9A6518" />
+                        <TextBlock Text="{Binding Status}" FontSize="9" FontWeight="Bold" Foreground="{StaticResource WarningBrush}" />
                     </Border>
                     <Border Style="{StaticResource StatusBadgeInfo}" Margin="8,0,0,0">
                         <TextBlock Text="{Binding PlannedStep}" FontSize="9" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" />

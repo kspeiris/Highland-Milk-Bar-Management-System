@@ -124,13 +124,13 @@
                 </ScrollViewer>
 
                 <!-- Footer -->
-                <Border Grid.Row="3" Background="#163B55" CornerRadius="12" Padding="12" Margin="0,14,0,0"
+                <Border Grid.Row="3" Background="{StaticResource SidebarPanelBrush}" CornerRadius="12" Padding="12" Margin="0,14,0,0"
                         Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVis}}">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <Ellipse Width="8" Height="8" Fill="{StaticResource SuccessBrush}" VerticalAlignment="Center" />
                             <TextBlock Text="  LOCAL MODE" FontSize="10" FontWeight="Bold"
-                                       Foreground="#E7F2F8" />
+                                       Foreground="{StaticResource SidebarLightTextBrush}" />
                         </StackPanel>
                         <TextBlock Text="Your data is stored on this computer." TextWrapping="Wrap"
                                    FontSize="10.5" Foreground="{StaticResource SidebarTextBrush}" Margin="0,7,0,0" />

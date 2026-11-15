@@ -3,7 +3,7 @@
 
     <!-- Header -->
     <Style x:Key="AppDataGridHeader" TargetType="DataGridColumnHeader">
-        <Setter Property="Background" Value="#F5F8FB" />
+        <Setter Property="Background" Value="{StaticResource TableHeaderBrush}" />
         <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
         <Setter Property="FontFamily" Value="Segoe UI Semibold" />
         <Setter Property="FontSize" Value="10" />
@@ -24,7 +24,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="DataGridCell">
-                    <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
                         <ContentPresenter VerticalAlignment="Center" />
                     </Border>
                 </ControlTemplate>
@@ -37,10 +37,10 @@
         <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
         <Style.Triggers>
             <Trigger Property="AlternationIndex" Value="1">
-                <Setter Property="Background" Value="#FBFCFE" />
+                <Setter Property="Background" Value="{StaticResource TableAlternateBrush}" />
             </Trigger>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="#F0F6FC" />
+                <Setter Property="Background" Value="{StaticResource TableHoverBrush}" />
             </Trigger>
             <Trigger Property="IsSelected" Value="True">
                 <Setter Property="Background" Value="{StaticResource PrimaryLightBrush}" />
@@ -56,7 +56,7 @@
         <Setter Property="ColumnHeaderHeight" Value="42" />
         <Setter Property="HeadersVisibility" Value="Column" />
         <Setter Property="GridLinesVisibility" Value="None" />
-        <Setter Property="HorizontalGridLinesBrush" Value="#EEF2F6" />
+        <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource TableLineBrush}" />
         <Setter Property="VerticalGridLinesBrush" Value="Transparent" />
         <Setter Property="AlternationCount" Value="2" />
         <Setter Property="SelectionMode" Value="Single" />

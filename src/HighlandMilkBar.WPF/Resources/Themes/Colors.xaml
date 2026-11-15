@@ -7,39 +7,50 @@
          ============================================================ -->
 
     <!-- Brand -->
-    <Color x:Key="PrimaryColor">#145DA0</Color>
-    <Color x:Key="PrimaryDarkColor">#12304A</Color>
-    <Color x:Key="PrimaryLightColor">#EAF3FB</Color>
-    <Color x:Key="AccentColor">#32A6C7</Color>
+    <Color x:Key="PrimaryColor">#176B55</Color>
+    <Color x:Key="PrimaryDarkColor">#124B3D</Color>
+    <Color x:Key="PrimaryLightColor">#E8F4EF</Color>
+    <Color x:Key="AccentColor">#D3A84C</Color>
 
     <!-- Surfaces -->
-    <Color x:Key="BackgroundColor">#F4F7FB</Color>
+    <Color x:Key="BackgroundColor">#F5F7F4</Color>
     <Color x:Key="SurfaceColor">#FFFFFF</Color>
 
     <!-- Text -->
-    <Color x:Key="TextPrimaryColor">#172B3A</Color>
-    <Color x:Key="TextSecondaryColor">#647789</Color>
+    <Color x:Key="TextPrimaryColor">#202B27</Color>
+    <Color x:Key="TextSecondaryColor">#5E6B64</Color>
 
     <!-- Status -->
-    <Color x:Key="SuccessColor">#23976A</Color>
-    <Color x:Key="WarningColor">#E5A132</Color>
-    <Color x:Key="DangerColor">#D94B4B</Color>
+    <Color x:Key="SuccessColor">#247A54</Color>
+    <Color x:Key="WarningColor">#9A6410</Color>
+    <Color x:Key="DangerColor">#B84040</Color>
 
     <!-- Lines -->
-    <Color x:Key="BorderColor">#E3EAF1</Color>
+    <Color x:Key="BorderColor">#DFE5DF</Color>
+    <Color x:Key="SuccessSurfaceColor">#E7F3EB</Color>
+    <Color x:Key="WarningSurfaceColor">#FBF2DF</Color>
+    <Color x:Key="DangerSurfaceColor">#F9E9E7</Color>
+    <Color x:Key="TableHeaderColor">#F1F4F0</Color>
+    <Color x:Key="TableAlternateColor">#FAFBF9</Color>
+    <Color x:Key="TableHoverColor">#F0F6F2</Color>
+    <Color x:Key="TableLineColor">#EDF0EC</Color>
 
     <!-- Derived / interaction -->
-    <Color x:Key="PrimaryHoverColor">#11528C</Color>
-    <Color x:Key="PrimaryPressedColor">#0E4677</Color>
-    <Color x:Key="SuccessHoverColor">#1E8059</Color>
-    <Color x:Key="DangerHoverColor">#C23F3F</Color>
-    <Color x:Key="FocusColor">#32A6C7</Color>
+    <Color x:Key="PrimaryHoverColor">#145C49</Color>
+    <Color x:Key="PrimaryPressedColor">#104A3B</Color>
+    <Color x:Key="SuccessHoverColor">#1E6848</Color>
+    <Color x:Key="DangerHoverColor">#A73838</Color>
+    <Color x:Key="FocusColor">#25866A</Color>
+    <Color x:Key="NeutralHoverColor">#EDF2EE</Color>
+    <Color x:Key="PrimaryLightHoverColor">#D9EAE1</Color>
 
     <!-- Sidebar -->
-    <Color x:Key="SidebarColor">#12304A</Color>
-    <Color x:Key="SidebarHoverColor">#1B3A52</Color>
-    <Color x:Key="SidebarSelectedColor">#1C4C70</Color>
-    <Color x:Key="SidebarTextColor">#C7D6E4</Color>
+    <Color x:Key="SidebarColor">#173D33</Color>
+    <Color x:Key="SidebarHoverColor">#214A3F</Color>
+    <Color x:Key="SidebarSelectedColor">#2A5C4D</Color>
+    <Color x:Key="SidebarTextColor">#D0DED6</Color>
+    <Color x:Key="SidebarPanelColor">#20473B</Color>
+    <Color x:Key="SidebarLightTextColor">#EFF5F1</Color>
 
     <!-- ============================================================
          Brushes
@@ -60,17 +71,28 @@
     <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}" />
 
     <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="SuccessSurfaceBrush" Color="{StaticResource SuccessSurfaceColor}" />
+    <SolidColorBrush x:Key="WarningSurfaceBrush" Color="{StaticResource WarningSurfaceColor}" />
+    <SolidColorBrush x:Key="DangerSurfaceBrush" Color="{StaticResource DangerSurfaceColor}" />
+    <SolidColorBrush x:Key="TableHeaderBrush" Color="{StaticResource TableHeaderColor}" />
+    <SolidColorBrush x:Key="TableAlternateBrush" Color="{StaticResource TableAlternateColor}" />
+    <SolidColorBrush x:Key="TableHoverBrush" Color="{StaticResource TableHoverColor}" />
+    <SolidColorBrush x:Key="TableLineBrush" Color="{StaticResource TableLineColor}" />
 
     <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHoverColor}" />
     <SolidColorBrush x:Key="PrimaryPressedBrush" Color="{StaticResource PrimaryPressedColor}" />
     <SolidColorBrush x:Key="SuccessHoverBrush" Color="{StaticResource SuccessHoverColor}" />
     <SolidColorBrush x:Key="DangerHoverBrush" Color="{StaticResource DangerHoverColor}" />
     <SolidColorBrush x:Key="FocusBrush" Color="{StaticResource FocusColor}" />
+    <SolidColorBrush x:Key="NeutralHoverBrush" Color="{StaticResource NeutralHoverColor}" />
+    <SolidColorBrush x:Key="PrimaryLightHoverBrush" Color="{StaticResource PrimaryLightHoverColor}" />
 
     <SolidColorBrush x:Key="SidebarBrush" Color="{StaticResource SidebarColor}" />
     <SolidColorBrush x:Key="SidebarHoverBrush" Color="{StaticResource SidebarHoverColor}" />
     <SolidColorBrush x:Key="SidebarSelectedBrush" Color="{StaticResource SidebarSelectedColor}" />
     <SolidColorBrush x:Key="SidebarTextBrush" Color="{StaticResource SidebarTextColor}" />
+    <SolidColorBrush x:Key="SidebarPanelBrush" Color="{StaticResource SidebarPanelColor}" />
+    <SolidColorBrush x:Key="SidebarLightTextBrush" Color="{StaticResource SidebarLightTextColor}" />
 
     <!-- ============================================================
          Legacy aliases (kept so existing views continue to compile)
@@ -83,5 +105,7 @@
     <SolidColorBrush x:Key="BorderBrushSoft" Color="{StaticResource BorderColor}" />
     <SolidColorBrush x:Key="GreenBrush" Color="{StaticResource SuccessColor}" />
     <SolidColorBrush x:Key="AmberBrush" Color="{StaticResource WarningColor}" />
+    <SolidColorBrush x:Key="SuccessBadgeTextBrush" Color="#1B6743" />
+    <SolidColorBrush x:Key="DangerBadgeTextBrush" Color="#A73838" />
 
 </ResourceDictionary>
