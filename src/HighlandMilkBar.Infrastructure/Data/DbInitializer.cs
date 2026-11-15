@@ -197,7 +197,9 @@ public static class DbInitializer
             ("inventory.allow_negative_stock", "false"),
             ("inventory.allocation_policy", "FEFO"),
             ("receipt.width_mm", "80"),
-            ("receipt.footer", "Thank you for your purchase!")
+            ("receipt.footer", "Thank you for your purchase!"),
+            ("pricing.target_margin", "0.4"),
+            ("pricing.round_increment", "0")
         };
 
         var changed = false;

@@ -35,9 +35,11 @@ public partial class App : System.Windows.Application
             var inventoryQueryService = new InventoryQueryService(db);
             var salesService = new SalesService(db, inventoryService);
             var receiptService = new ReceiptService(db);
+            var recipeService = new RecipeService(db);
+            var milkBarService = new MilkBarService(db, recipeService);
             var mainViewModel = new MainViewModel(
                 dashboardService, productService, categoryService, inventoryService, inventoryQueryService,
-                salesService, salesService, receiptService);
+                salesService, salesService, receiptService, milkBarService, recipeService);
             await mainViewModel.InitializeAsync();
 
             var mainWindow = new MainWindow { DataContext = mainViewModel };

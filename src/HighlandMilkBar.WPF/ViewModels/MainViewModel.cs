@@ -14,6 +14,8 @@ public sealed class MainViewModel : ObservableObject
     private readonly ISalesService _salesService;
     private readonly ISalesQueryService _salesQueryService;
     private readonly IReceiptService _receiptService;
+    private readonly IMilkBarService _milkBarService;
+    private readonly IRecipeService _recipeService;
     private object? _currentViewModel;
     private string _currentTitle = "Dashboard";
     private string _currentSubtitle = "Your outlet at a glance";
@@ -29,7 +31,9 @@ public sealed class MainViewModel : ObservableObject
         IInventoryQueryService inventoryQueryService,
         ISalesService salesService,
         ISalesQueryService salesQueryService,
-        IReceiptService receiptService)
+        IReceiptService receiptService,
+        IMilkBarService milkBarService,
+        IRecipeService recipeService)
     {
         _dashboardService = dashboardService;
         _productService = productService;
@@ -39,6 +43,8 @@ public sealed class MainViewModel : ObservableObject
         _salesService = salesService;
         _salesQueryService = salesQueryService;
         _receiptService = receiptService;
+        _milkBarService = milkBarService;
+        _recipeService = recipeService;
 
         NavItems = new ObservableCollection<NavItemViewModel>
         {
@@ -136,6 +142,7 @@ public sealed class MainViewModel : ObservableObject
             "Sales History" => new SalesHistoryViewModel(_salesQueryService, _salesService, _receiptService),
             "Products" => new ProductsViewModel(_productService, _categoryService),
             "Inventory" => new InventoryViewModel(_inventoryQueryService, _inventoryService, _productService),
+            "Milk Bar" => new MilkBarViewModel(_milkBarService, _recipeService, _productService),
             _ => new PlaceholderViewModel(key, CurrentSubtitle, GetScaffoldDescription(key), GetPlannedStep(key), GetGlyph(key))
         };
 

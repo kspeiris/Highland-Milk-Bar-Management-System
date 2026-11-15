@@ -1,3 +1,4 @@
+using HighlandMilkBar.Application.Common;
 using HighlandMilkBar.Application.DTOs;
 using HighlandMilkBar.Application.Services;
 using HighlandMilkBar.Domain.Entities;
@@ -531,8 +532,18 @@ public sealed class SalesService(AppDbContext db, IInventoryService inventory) :
             var ingredient = item.IngredientProduct;
             if (ingredient != null && ingredient.TrackInventory)
             {
+                // Normalise the recipe unit into the ingredient's stock unit before allocating.
+                var stockUnit = string.IsNullOrWhiteSpace(ingredient.Unit) ? item.Unit : ingredient.Unit;
+                var converted = required;
+                if (!UnitConversion.TryConvert(item.Unit, stockUnit, required, out converted, out _))
+                {
+                    // Recipes created through the validated editor are always compatible; this
+                    // fallback preserves behaviour for legacy data created outside that path.
+                    converted = required;
+                }
+
                 var allocation = await inventory.AllocateAsync(
-                    ingredient.Id, required, StockMovementType.RecipeConsumption,
+                    ingredient.Id, converted, StockMovementType.RecipeConsumption,
                     MovementReferenceType.Recipe, recipe.Id, saleItemId, policy, cancellationToken);
                 totalCost += allocation.TotalCost;
             }
