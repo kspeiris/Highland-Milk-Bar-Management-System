@@ -1,0 +1,223 @@
+<UserControl x:Class="HighlandMilkBar.WPF.Views.PosView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:HighlandMilkBar.WPF.Controls"
+             Loaded="PosView_Loaded">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MinWidth="420" />
+            <ColumnDefinition Width="380" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Product browsing -->
+        <Grid Grid.Column="0" Margin="0,0,12,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="220" />
+                </Grid.ColumnDefinitions>
+                <Border>
+                    <controls:SearchBox x:Name="SearchInput" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+                </Border>
+                <ComboBox Grid.Column="2" Style="{StaticResource AppComboBox}"
+                          ItemsSource="{Binding Categories}" DisplayMemberPath="Name"
+                          SelectedItem="{Binding SelectedCategory}" />
+            </Grid>
+
+            <TextBlock Grid.Row="1" Margin="2,0,0,8" FontSize="12"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       Text="{Binding FilterCount, StringFormat={}{0} product(s)}" />
+
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding FilteredProducts}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Width="150" Height="96" Margin="0,0,10,10" Cursor="Hand"
+                                    Command="{Binding DataContext.AddCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource FlatCard}" HorizontalContentAlignment="Left" Padding="12">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Name}" FontSize="12.5" FontWeight="SemiBold"
+                                               TextWrapping="Wrap" MaxHeight="34" />
+                                    <TextBlock Text="{Binding SellingPrice, StringFormat=LKR {0:0.00}}" FontSize="13"
+                                               Foreground="{StaticResource PrimaryBrush}" Margin="0,6,0,2" />
+                                    <TextBlock FontSize="10.5" Foreground="{StaticResource TextSecondaryBrush}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="Made to order" />
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- Cart -->
+        <Border Grid.Column="1" Style="{StaticResource AppCard}" Padding="16">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="CURRENT ORDER" Style="{StaticResource LabelText}" />
+                        <TextBlock FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"
+                                   Text="{Binding CartQuantity, StringFormat={}{0:0.###} item(s)}" />
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Clear" Style="{StaticResource GhostButton}"
+                            Command="{Binding ClearCommand}" VerticalAlignment="Center" />
+                </Grid>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Cart}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="0,8">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="70" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Name}" FontSize="12.5" FontWeight="SemiBold" />
+                                            <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Text="{Binding UnitPrice, StringFormat=LKR {0:0.00}}" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right"
+                                                   FontSize="12.5" Text="{Binding LineTotal, StringFormat=LKR {0:0.00}}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Line controls + totals + payment -->
+                <StackPanel Grid.Row="2" Margin="0,10,0,0">
+                    <Border Style="{StaticResource FlatCard}" Padding="10" Margin="0,0,0,10">
+                        <StackPanel>
+                            <TextBlock Text="SELECTED ITEM" Style="{StaticResource LabelText}" Margin="0,0,0,6" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Button Content="−" Style="{StaticResource OutlineButton}" Width="34"
+                                        Command="{Binding DecreaseCommand}" />
+                                <TextBox Grid.Column="1" Width="60" Margin="8,0" Style="{StaticResource InputTextBox}"
+                                         Text="{Binding SelectedLine.Quantity, UpdateSourceTrigger=PropertyChanged}" />
+                                <Button Grid.Column="2" Content="+" Style="{StaticResource OutlineButton}" Width="34"
+                                        Command="{Binding IncreaseCommand}" />
+                                <Button Grid.Column="3" Content="Remove" Style="{StaticResource GhostButton}" HorizontalAlignment="Right"
+                                        Command="{Binding RemoveCommand}" />
+                            </Grid>
+                            <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,6,0,0"
+                                       Text="{Binding SelectedLine.AvailabilityText}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Subtotal" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" />
+                        <TextBlock Grid.Column="1" FontSize="12.5" Text="{Binding Subtotal, StringFormat=LKR {0:0.00}}" />
+                    </Grid>
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="110" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Order discount" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" />
+                        <TextBox Grid.Column="1" Style="{StaticResource InputTextBox}"
+                                 Text="{Binding OrderDiscountText, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="TOTAL" FontWeight="Bold" FontSize="15" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" FontWeight="Bold" FontSize="15"
+                                   Foreground="{StaticResource PrimaryBrush}" Text="{Binding Total, StringFormat=LKR {0:0.00}}" />
+                    </Grid>
+
+                    <TextBlock Text="PAYMENT" Style="{StaticResource LabelText}" Margin="0,0,0,6" />
+                    <ComboBox Style="{StaticResource AppComboBox}" Margin="0,0,0,8"
+                              ItemsSource="{Binding PaymentMethods}" SelectedItem="{Binding SelectedPaymentMethod}" />
+
+                    <Grid Margin="0,0,0,6" Visibility="{Binding ShowCashInput, Converter={StaticResource BoolToVis}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="110" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Cash received" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                        <TextBox Grid.Column="1" Style="{StaticResource InputTextBox}"
+                                 Text="{Binding CashReceivedText, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+                    <Grid Margin="0,0,0,6" Visibility="{Binding ShowCardInput, Converter={StaticResource BoolToVis}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="110" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Card amount" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                        <TextBox Grid.Column="1" Style="{StaticResource InputTextBox}"
+                                 Text="{Binding CardAmountText, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+
+                    <Grid Margin="0,6,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Change" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{StaticResource SuccessBrush}" Text="{Binding Change, StringFormat=LKR {0:0.00}}" />
+                    </Grid>
+
+                    <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" FontSize="12" Margin="0,0,0,8">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="{StaticResource SuccessBrush}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsError}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <Button Content="CHECKOUT" Style="{StaticResource PrimaryButton}" Height="48" FontSize="15"
+                            Command="{Binding CheckoutCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
