@@ -9,6 +9,11 @@ public sealed class MainViewModel : ObservableObject
     private readonly IDashboardService _dashboardService;
     private readonly IProductService _productService;
     private readonly ICategoryService _categoryService;
+    private readonly IInventoryService _inventoryService;
+    private readonly IInventoryQueryService _inventoryQueryService;
+    private readonly ISalesService _salesService;
+    private readonly ISalesQueryService _salesQueryService;
+    private readonly IReceiptService _receiptService;
     private object? _currentViewModel;
     private string _currentTitle = "Dashboard";
     private string _currentSubtitle = "Your outlet at a glance";
@@ -16,16 +21,30 @@ public sealed class MainViewModel : ObservableObject
     private bool _isSidebarCollapsed;
     private double _sidebarWidth = 248;
 
-    public MainViewModel(IDashboardService dashboardService, IProductService productService, ICategoryService categoryService)
+    public MainViewModel(
+        IDashboardService dashboardService,
+        IProductService productService,
+        ICategoryService categoryService,
+        IInventoryService inventoryService,
+        IInventoryQueryService inventoryQueryService,
+        ISalesService salesService,
+        ISalesQueryService salesQueryService,
+        IReceiptService receiptService)
     {
         _dashboardService = dashboardService;
         _productService = productService;
         _categoryService = categoryService;
+        _inventoryService = inventoryService;
+        _inventoryQueryService = inventoryQueryService;
+        _salesService = salesService;
+        _salesQueryService = salesQueryService;
+        _receiptService = receiptService;
 
         NavItems = new ObservableCollection<NavItemViewModel>
         {
             new("Dashboard", "⌂", "Dashboard"),
             new("Point of Sale", "▣", "Point of Sale"),
+            new("Sales History", "☰", "Sales History"),
             new("Products", "▤", "Products"),
             new("Inventory", "▥", "Inventory"),
             new("Milk Bar", "◍", "Milk Bar"),
@@ -96,6 +115,7 @@ public sealed class MainViewModel : ObservableObject
         {
             "Dashboard" => "Your outlet at a glance",
             "Point of Sale" => "Fast checkout and billing workspace",
+            "Sales History" => "Past transactions, receipts and returns",
             "Products" => "Manage your product catalogue and prices",
             "Inventory" => "Stock levels, batches and expiry control",
             "Milk Bar" => "Menu items, recipes and ingredient usage",
@@ -112,7 +132,10 @@ public sealed class MainViewModel : ObservableObject
         CurrentViewModel = key switch
         {
             "Dashboard" => new DashboardViewModel(_dashboardService, NavigateTo),
+            "Point of Sale" => new PosViewModel(_productService, _inventoryQueryService, _salesService, _receiptService),
+            "Sales History" => new SalesHistoryViewModel(_salesQueryService, _salesService, _receiptService),
             "Products" => new ProductsViewModel(_productService, _categoryService),
+            "Inventory" => new InventoryViewModel(_inventoryQueryService, _inventoryService, _productService),
             _ => new PlaceholderViewModel(key, CurrentSubtitle, GetScaffoldDescription(key), GetPlannedStep(key), GetGlyph(key))
         };
 

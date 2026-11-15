@@ -15,6 +15,15 @@
         <DataTemplate DataType="{x:Type vm:ProductsViewModel}">
             <views:ProductsView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:PosViewModel}">
+            <views:PosView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SalesHistoryViewModel}">
+            <views:SalesHistoryView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:InventoryViewModel}">
+            <views:InventoryView />
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:PlaceholderViewModel}">
             <views:PlaceholderView />
         </DataTemplate>
